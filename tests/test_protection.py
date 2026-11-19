@@ -89,6 +89,9 @@ class ProtectionTests(unittest.TestCase):
         finally:
             receiver.db.close()
 
+    @unittest.skipUnless(
+        sys.platform == "win32", "Windows Hello uses the Windows native adapter"
+    )
     def test_signed_assertions_and_tampering(self):
         try:
             import fido2.client.windows  # noqa: F401 - ensure the native adapter imports
