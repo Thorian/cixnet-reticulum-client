@@ -2,17 +2,17 @@
 
 A free Reticulum client for Windows and Android, with messaging, network browsing and support for connections that come and go.
 
+## Download 0.1.0 Preview
+
+- **[Download for Android — APK](https://github.com/Thorian/cixnet-reticulum-client/releases/download/v0.1.0-preview/ciXnet-debug.apk)**
+- **[Download for Windows — ZIP](https://github.com/Thorian/cixnet-reticulum-client/releases/download/v0.1.0-preview/ciXnet-windows.zip)**
+- [Release notes and checksums](https://github.com/Thorian/cixnet-reticulum-client/releases/tag/v0.1.0-preview)
+
+Android: allow installation from your browser. Existing previews can update with this APK. Windows: extract the whole ZIP and run `ciXnet.exe`; Microsoft Edge WebView2 is required. Linux: follow the source instructions below.
+
 ![A ciXnet conversation on Android](manual/images/02-conversation.png)
 
 The screenshot uses demonstration messages. Read the [user guide](manual/MANUAL.md) for setup and everyday use.
-
-## Download
-
-Get the [latest preview](https://github.com/Thorian/cixnet-reticulum-client/releases):
-
-- **Android:** download `ciXnet-debug.apk` and allow installation from your browser. Existing preview installations can update with the same APK filename and signing key.
-- **Windows:** download `ciXnet-windows.zip`, extract the whole folder and run `ciXnet.exe`. Microsoft Edge WebView2 is required.
-- **Linux:** run from source using the instructions below.
 
 ## What it does
 
