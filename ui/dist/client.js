@@ -25,9 +25,9 @@
     mod
   ));
 
-  // outputs/cixnet-client/ui/vendor/qrcode.cjs
+  // ui/vendor/qrcode.cjs
   var require_qrcode = __commonJS({
-    "outputs/cixnet-client/ui/vendor/qrcode.cjs"(exports, module) {
+    "ui/vendor/qrcode.cjs"(exports, module) {
       var qrcode = (function() {
         var qrcode2 = function(typeNumber, errorCorrectionLevel) {
           var PAD0 = 236;
@@ -1712,9 +1712,9 @@
     }
   });
 
-  // outputs/cixnet-client/ui/vendor/jsqr.cjs
+  // ui/vendor/jsqr.cjs
   var require_jsqr = __commonJS({
-    "outputs/cixnet-client/ui/vendor/jsqr.cjs"(exports, module) {
+    "ui/vendor/jsqr.cjs"(exports, module) {
       (function webpackUniversalModuleDefinition(root, factory) {
         if (typeof exports === "object" && typeof module === "object")
           module.exports = factory();
@@ -11731,7 +11731,7 @@
     }
   });
 
-  // outputs/cixnet-client/ui/activity.js
+  // ui/activity.js
   var activities = /* @__PURE__ */ new Map();
   var indicator;
   var clock;
@@ -11774,7 +11774,7 @@
     };
   }
 
-  // outputs/cixnet-client/ui/core.js
+  // ui/core.js
   var model = {
     token: null,
     accessKey: new URLSearchParams(globalThis.location?.hash?.slice(1) || "").get(
@@ -11902,7 +11902,7 @@
     });
   }
 
-  // outputs/cixnet-client/ui/icons.js
+  // ui/icons.js
   var iconCatalog = {};
   var avatarPalette = {
     green: ["70e7a3", "2e503c"],
@@ -11998,7 +11998,7 @@
     return `<span class="mdi-glyph" aria-hidden="true">${escapeHTML(iconCatalog[name] || iconCatalog.web || "\u2022")}</span>`;
   }
 
-  // outputs/cixnet-client/ui/pairing-ui.js
+  // ui/pairing-ui.js
   var import_qrcode = __toESM(require_qrcode(), 1);
   var import_jsqr = __toESM(require_jsqr(), 1);
   var timer;
@@ -12213,7 +12213,7 @@
     });
   }
 
-  // outputs/cixnet-client/ui/about-ui.js
+  // ui/about-ui.js
   function initAbout() {
     const content = $("about-content");
     let page = null;
@@ -12265,7 +12265,7 @@
     };
   }
 
-  // outputs/cixnet-client/ui/protection-ui.js
+  // ui/protection-ui.js
   var busy = false;
   async function verify(profile, action) {
     if (busy) throw new Error("Finish the current Windows Hello prompt first");
@@ -12325,7 +12325,7 @@
     }
   }
 
-  // outputs/cixnet-client/ui/identity-ui.js
+  // ui/identity-ui.js
   var onSelectIdentity;
   var editingIdentity;
   function syncIdentityUI() {
@@ -12492,7 +12492,7 @@
     }
   }
 
-  // outputs/cixnet-client/ui/conversation-search.js
+  // ui/conversation-search.js
   function conversationMatches(messages, query, nameOf, draftPeer = null, savedMatches = []) {
     const term = query.trim().toLocaleLowerCase();
     const latest = /* @__PURE__ */ new Map();
@@ -12518,7 +12518,7 @@
     return [...matches.values()].sort((a, b) => b.timestamp - a.timestamp);
   }
 
-  // outputs/cixnet-client/ui/delivery-status.js
+  // ui/delivery-status.js
   function deliveryStatus(status) {
     return {
       queued: {
@@ -12547,7 +12547,7 @@
     }[status] || { mark: "", tone: "pending", label: status || "" };
   }
 
-  // outputs/cixnet-client/ui/camera-ui.js
+  // ui/camera-ui.js
   function stopCamera(stream2) {
     stream2?.getTracks().forEach((track) => track.stop());
   }
@@ -12669,7 +12669,7 @@
     await start2();
   }
 
-  // outputs/cixnet-client/ui/attachments-ui.js
+  // ui/attachments-ui.js
   var MAX_ATTACHMENT_BYTES = 8 * 1024 * 1024;
   function fittedDimensions(width, height, maxEdge) {
     const scale = Math.min(1, maxEdge / Math.max(width, height));
@@ -12783,7 +12783,7 @@
     return row;
   }
 
-  // outputs/cixnet-client/ui/messaging-ui.js
+  // ui/messaging-ui.js
   var onBack;
   var listSignature = "";
   var selectedFiles = [];
@@ -13266,7 +13266,7 @@
     clearAttachmentPreviews();
   }
 
-  // outputs/cixnet-client/ui/lxmf-links.js
+  // ui/lxmf-links.js
   function lxmfAddress(value) {
     if (typeof value !== "string" || value.length > 2048) return null;
     const link = value.trim();
@@ -13274,7 +13274,7 @@
     return match ? match[1].toLowerCase() : null;
   }
 
-  // outputs/cixnet-client/ui/browse-filters.js
+  // ui/browse-filters.js
   var browseKinds = [
     { kind: "lxmf", label: "Stations", icon: "account" },
     { kind: "node", label: "NomadNet", icon: "text-box-outline" },
@@ -13308,7 +13308,7 @@
     );
   }
 
-  // outputs/cixnet-client/ui/micron-images.js
+  // ui/micron-images.js
   function imageMime(bytes) {
     const starts = (values) => values.every((value, index) => bytes[index] === value);
     if (starts([137, 80, 78, 71, 13, 10, 26, 10])) return "image/png";
@@ -13403,7 +13403,7 @@
     enqueue(!page.images.has(target));
   }
 
-  // outputs/cixnet-client/ui/micron.js
+  // ui/micron.js
   function micronColor(value) {
     return /^(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(value || "") ? `#${value}` : null;
   }
@@ -13769,7 +13769,7 @@
     return data;
   }
 
-  // outputs/cixnet-client/ui/browser-ui.js
+  // ui/browser-ui.js
   var sessions = /* @__PURE__ */ new Map();
   var generation = 0;
   var timer2 = null;
@@ -14528,7 +14528,7 @@
     renderBrowseNodes();
   }
 
-  // outputs/cixnet-client/ui/announce-time.js
+  // ui/announce-time.js
   function announceTime(received, now = Date.now() / 1e3) {
     const seconds = Math.max(0, Math.floor(now - received));
     return seconds < 300 ? `${seconds}s ago` : new Date(received * 1e3).toLocaleTimeString([], {
@@ -14537,7 +14537,7 @@
     });
   }
 
-  // outputs/cixnet-client/ui/connection-status.js
+  // ui/connection-status.js
   function connectionCounts(network) {
     const lan = network.interfaces.filter((item) => item.type === "AutoInterface").reduce((sum, item) => sum + item.peers, 0);
     const tcp = network.interfaces.filter(
@@ -14571,7 +14571,7 @@
     };
   }
 
-  // outputs/cixnet-client/ui/network-ui.js
+  // ui/network-ui.js
   var selectedAnnounce = null;
   var actions;
   function initAnnounces(callbacks) {
@@ -14728,7 +14728,7 @@
     });
   }
 
-  // outputs/cixnet-client/ui/station-location.js
+  // ui/station-location.js
   function stationLocation(geolocation) {
     let watch;
     let settled = false;
@@ -14784,7 +14784,7 @@
     };
   }
 
-  // outputs/cixnet-client/ui/stations-ui.js
+  // ui/stations-ui.js
   function initStations() {
     const dialog = document.createElement("dialog");
     dialog.id = "stations-dialog";
@@ -14916,7 +14916,7 @@
     };
   }
 
-  // outputs/cixnet-client/ui/settings.js
+  // ui/settings.js
   var interfaceDrafts = [];
   var editingIndex = null;
   function renderInterfaces() {
@@ -15089,7 +15089,7 @@
     };
   }
 
-  // outputs/cixnet-client/ui/shell.js
+  // ui/shell.js
   function renderWelcome(onCompose) {
     $("detail").innerHTML = `<div class="welcome"><div class="eyebrow small">WELCOME TO YOUR NETWORK</div>
     <h1>Good connections start here.</h1><p class="muted">A place for your people, wherever the network takes you.<br>
@@ -15112,7 +15112,7 @@
     An empty list means none have been received.</div></div></div>`;
   }
 
-  // outputs/cixnet-client/ui/app.js
+  // ui/app.js
   var lastPollError = "";
   function showTab(tab) {
     leaveBrowser();
