@@ -1,0 +1,9 @@
+{
+    admin off
+}
+gw.cixnet.org {
+    root * /var/www/cixnet-gateway
+    file_server
+    header X-Content-Type-Options nosniff
+    header Referrer-Policy no-referrer
+}

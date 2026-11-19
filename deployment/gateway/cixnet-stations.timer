@@ -1,0 +1,10 @@
+[Unit]
+Description=Compile the ciXnet station directory weekly
+
+[Timer]
+OnCalendar=Sun *-*-* 04:00:00 UTC
+Persistent=true
+RandomizedDelaySec=1h
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,9 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- Launcher artwork is 2.5 times the original 24dp glyph; notifications retain their own size. -->
+    <group android:scaleX="2.5" android:scaleY="2.5" android:translateX="24" android:translateY="24">
+        <path android:fillColor="#71E5A6"
+            android:pathData="M4,4 L8,4 L12,9 L16,4 L20,4 L14,12 L20,20 L16,20 L12,15 L8,20 L4,20 L10,12 Z" />
+    </group>
+</vector>

@@ -1,0 +1,20 @@
+{
+  "name": "cixnet-client",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "build": "esbuild ./ui/app.js --bundle --format=iife --platform=browser --target=es2020 --sourcemap --outfile=ui/dist/client.js",
+    "format": "prettier --write \"ui/*.{js,html,css}\"",
+    "format:check": "prettier --check \"ui/*.{js,html,css}\"",
+    "test": "node --test tests/frontend.test.js tests/station-location.test.js tests/activity.test.js tests/nomadpl-activity.test.js tests/browse-filters.test.js tests/lxmf-links.test.js tests/composer.test.js"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12",
+    "prettier": "3.6.2"
+  }
+}
+
+
+

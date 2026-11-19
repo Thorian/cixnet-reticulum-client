@@ -1,0 +1,39 @@
+plugins { id 'com.android.application'; id 'com.chaquo.python' }
+android {
+    namespace 'net.cixnet.client'
+    buildFeatures { buildConfig true }
+    compileSdk 35
+    defaultConfig {
+        applicationId 'net.cixnet.client'
+        minSdk 26
+        targetSdk 35
+        versionCode 11
+        versionName '0.1.0-preview'
+        ndk { abiFilters 'arm64-v8a', 'x86_64' }
+        testInstrumentationRunner 'net.cixnet.client.InsetsInstrumentation'
+    }
+    signingConfigs { debug { storeFile rootProject.file('generated/debug.keystore'); storePassword 'android'; keyAlias 'androiddebugkey'; keyPassword 'android' } }
+    sourceSets { main { assets.srcDir '../generated/assets' } }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+chaquopy {
+    defaultConfig {
+        version = '3.12'
+        def python = providers.gradleProperty('buildPython').orNull
+        if (python != null) buildPython(python)
+        // Reticulum's supported internal crypto provider is used in this preview.
+        // The Android package index offers only an older PyCA binary.
+        pip { install 'pyserial==3.5' }
+        extractPackages 'RNS', 'LXMF', 'cixnet', 'nomadpl', 'retdns'
+    }
+    sourceSets { main { srcDir '../generated/python' } }
+}
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>About ciXnet · Credits and licenses</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="about-page">
+      <header class="about-header">
+        <a href="/" aria-label="ciXnet client"
+          ><img src="logo.svg" width="180" height="64" alt="ciXnet" /></a
+        ><a class="about-link" href="/">Open client →</a>
+      </header>
+      <div class="eyebrow">INDEPENDENT CONNECTIONS</div>
+      <h1>About ciXnet</h1>
+      <p class="about-intro">
+        ciXnet is a public software project for practical, resilient community
+        networks. We are building a friendly client and services on top of
+        Reticulum, while staying compatible with the standard network stack.
+      </p>
+      <p>
+        Our goal is to make independent communication approachable: familiar
+        messaging, useful local networks, and services people can operate
+        themselves. LocNet guidance, name resolution, internet email access,
+        group chat, a library, and a richer HTML experience are part of the
+        wider project direction.
+      </p>
+      <p class="notice">
+        Development preview: identities, direct LXMF messaging, file and image
+        attachments, optional image reduction, camera controls, avatars, and
+        local networking, and standard NomadNet browsing are implemented.
+        Windows and Android preview packages are available for testing. Linux
+        packaging, Android biometric protection, encrypted storage, and the
+        wider service platform are still in development.
+      </p>
+      <section>
+        <h2>Desktop preview</h2>
+        <p>
+          The desktop window uses
+          <a
+            href="https://pywebview.flowrl.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            >pywebview</a
+          >
+          (MIT), with the operating system's web engine. Reticulum runs in a
+          separate supervised receiver process. Portable packages retain
+          dependency notices and a build inventory alongside the application.
+        </p>
+        <p>
+          The service runs on Python 3.12. The Windows window uses Microsoft
+          Edge WebView2 through pywebview 6.2.1; it does not need Chrome.
+          PyInstaller 6.22.3 bundles Python, our code and its dependencies into
+          the portable executable folder. PyInstaller is the packaging tool, not
+          the interface runtime. The shared Linux launcher selects
+          GTK/WebKitGTK.
+        </p>
+        <p>
+          pywebview uses MIT terms. Python retains its PSF license, and
+          PyInstaller retains its GPL license with a bootloader distribution
+          exception. Original ciXnet code remains MIT-licensed.
+        </p>
+        <p>
+          <a
+            href="https://pyinstaller.org/"
+            target="_blank"
+            rel="noopener noreferrer"
+            >PyInstaller project</a
+          >
+          ·
+          <a href="licenses/PyInstaller-COPYING.txt"
+            >PyInstaller license and bootloader exception</a
+          >
+        </p>
+        <p>
+          <a href="licenses/pywebview-MIT.txt">pywebview license</a> ·
+          <a href="licenses/WebView2-LICENSE.txt">WebView2 SDK license</a> ·
+          <a href="licenses/WebView2-NOTICE.txt">WebView2 notices</a>
+        </p>
+      </section>
+      <section>
+        <h2>retdns and NomadPL</h2>
+        <p>
+          The retdns library provides server discovery and cached name
+          resolution. NomadPL provides HTML, CSS, images and web requests over
+          its separate Reticulum namespace. Both are independently distributed
+          MIT-licensed libraries, copyright 2026 their respective contributors.
+        </p>
+        <p>
+          <a href="licenses/retdns-MIT.txt">retdns license</a> ·
+          <a href="licenses/nomadpl-MIT.txt">NomadPL license</a>
+        </p>
+      </section>
+      <section>
+        <h2>Our license</h2>
+        <p>
+          Original ciXnet application code and artwork are published under the
+          MIT License. Third-party software and assets retain their own
+          licenses; inclusion here does not relicense them. This preview has no
+          published ciXnet repository URL yet.
+        </p>
+        <details>
+          <summary>Read the ciXnet MIT License</summary>
+          <pre class="license-text">
+MIT License
+Copyright (c) 2026 ciXnet contributors
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the &quot;Software&quot;), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+</pre
+          >
+        </details>
+        <p>
+          <a href="licenses/cixnet-MIT.txt">Download the MIT license text</a>
+        </p>
+      </section>
+      <section>
+        <h2>Built with, and with thanks to</h2>
+        <p>
+          The following projects make this client possible. Links open their
+          official project pages. The accompanying license copies can be read
+          offline.
+        </p>
+        <div class="credits-grid">
+          <article>
+            <h3>Reticulum · 1.6.0</h3>
+            <p>
+              Networking, destinations, identities, routing, and encrypted
+              links. Created by Mark Qvist and contributors. Loaded from your
+              separate source installation.
+            </p>
+            <p>
+              <a
+                href="https://reticulum.network/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Project</a
+              >
+              ·
+              <a
+                href="https://github.com/markqvist/Reticulum"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Source</a
+              >
+              · <a href="licenses/reticulum.txt">Reticulum License</a>
+            </p>
+          </article>
+          <article>
+            <h3>LXMF · 1.3.0</h3>
+            <p>
+              Messaging, delivery handling, and the icon-appearance field.
+              Created by Mark Qvist and contributors. Loaded from your separate
+              source installation.
+            </p>
+            <p>
+              <a
+                href="https://github.com/markqvist/LXMF"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Project and source</a
+              >
+              · <a href="licenses/lxmf.txt">Reticulum License</a>
+            </p>
+          </article>
+          <article>
+            <h3>Material Design Icons · 7.4.47</h3>
+            <p>
+              7,448 bundled icons from Pictogrammers and contributors,
+              distributed through Templarian’s MDI webfont. Fonts and icons
+              retain upstream terms; the font is Apache-2.0. The supporting code
+              is MIT.
+            </p>
+            <p>
+              <a
+                href="https://pictogrammers.com/library/mdi/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Icon library</a
+              >
+              ·
+              <a
+                href="https://github.com/Templarian/MaterialDesign-Webfont/tree/v7.4.47"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Distribution</a
+              >
+              · <a href="licenses/mdi.txt">Upstream license</a> ·
+              <a href="licenses/Apache-2.0.txt">Apache-2.0</a>
+            </p>
+          </article>
+          <article>
+            <h3>Python</h3>
+            <p>
+              The local application service runs on Python. Standard-library
+              modules provide HTTP, JSON, file handling, threading, and SQLite
+              access. The runtime retains its PSF license and bundled notices.
+            </p>
+            <p>
+              <a
+                href="https://www.python.org/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Project</a
+              >
+              · <a href="licenses/python.txt">Runtime license and notices</a>
+            </p>
+          </article>
+          <article>
+            <h3>PyCA cryptography · 50.0.2</h3>
+            <p>
+              Reticulum selects the installed PyCA cryptographic provider in
+              this development environment. cryptography is dual-licensed under
+              Apache-2.0 or BSD-3-Clause.
+            </p>
+            <p>
+              <a
+                href="https://cryptography.io/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Project</a
+              >
+              ·
+              <a href="licenses/cryptography-LICENSE.txt">License statement</a>
+              ·
+              <a href="licenses/cryptography-LICENSE.BSD.txt">BSD license</a> ·
+              <a href="licenses/cryptography-LICENSE.APACHE.txt"
+                >Apache license</a
+              >
+            </p>
+          </article>
+          <article>
+            <h3>CFFI and pycparser</h3>
+            <p>
+              Installed support dependencies for the Python cryptographic
+              runtime. CFFI uses an MIT license; pycparser uses a BSD license.
+              The portable package records its exact dependency versions in
+              dependency-versions.json.
+            </p>
+            <p>
+              <a
+                href="https://cffi.readthedocs.io/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >CFFI</a
+              >
+              · <a href="licenses/cffi-LICENSE.txt">CFFI license</a> ·
+              <a
+                href="https://github.com/eliben/pycparser"
+                target="_blank"
+                rel="noopener noreferrer"
+                >pycparser</a
+              >
+              · <a href="licenses/pycparser-LICENSE.txt">pycparser license</a>
+            </p>
+          </article>
+          <article>
+            <h3>SQLite and OpenSSL</h3>
+            <p>
+              SQLite provides local message storage and is dedicated to the
+              public domain. OpenSSL underlies parts of the cryptographic
+              runtime; its applicable notices must accompany a packaged
+              distribution.
+            </p>
+            <p>
+              <a
+                href="https://sqlite.org/copyright.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                >SQLite copyright</a
+              >
+              ·
+              <a
+                href="https://www.openssl.org/legal/license.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                >OpenSSL licensing</a
+              >
+            </p>
+          </article>
+        </div>
+      </section>
+      <section>
+        <h2>License boundaries</h2>
+        <p>
+          Reticulum and LXMF use the custom Reticulum License, which includes
+          restrictions on purposeful harm and AI/model-training uses. They are
+          not covered by ciXnet’s MIT grant. Their full license texts above are
+          authoritative.
+        </p>
+        <p>
+          Reticulum also includes vendored components under their own notices.
+          See the
+          <a
+            href="https://github.com/markqvist/Reticulum#credits"
+            target="_blank"
+            rel="noopener noreferrer"
+            >upstream credits</a
+          >
+          and source distribution. A complete transitive license inventory must
+          be checked again when producing a specific native package.
+        </p>
+      </section>
+      <section>
+        <h2>Related projects and acknowledgements</h2>
+        <p>
+          <a
+            href="https://github.com/markqvist/Sideband"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Sideband</a
+          >
+          was consulted to understand the existing LXMF avatar wire format. Its
+          application code is not bundled, and ciXnet is not an official
+          Sideband client.
+          <a
+            href="https://github.com/markqvist/NomadNet"
+            target="_blank"
+            rel="noopener noreferrer"
+            >NomadNet</a
+          >
+          and
+          <a
+            href="https://github.com/markqvist/LXST"
+            target="_blank"
+            rel="noopener noreferrer"
+            >LXST</a
+          >
+          provide related protocols and services. NomadNet protocol and Micron
+          documentation/source were consulted for interoperability; ciXnet uses
+          its own renderer and does not bundle NomadNet application code. LXST
+          is not integrated in this build. Tauri is not included. The Android
+          preview embeds Chaquopy.
+        </p>
+        <p>
+          All project names belong to their respective owners. These credits do
+          not imply endorsement or affiliation.
+        </p>
+      </section>
+      <section>
+        <h2>AI assistance</h2>
+        <p>
+          ciXnet uses OpenAI’s Codex AI assistance in development, debugging,
+          and testing. AI work does not replace human oversight.
+        </p>
+      </section>
+      <section>
+        <h2>Development tooling</h2>
+        <p>
+          The source is formatted with
+          <a
+            href="https://prettier.io/"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Prettier</a
+          >
+          (MIT) and
+          <a
+            href="https://docs.astral.sh/ruff/"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Ruff</a
+          >
+          (MIT).
+          <a
+            href="https://esbuild.github.io/"
+            target="_blank"
+            rel="noopener noreferrer"
+            >esbuild</a
+          >
+          (MIT) bundles the readable JavaScript modules into the browser asset.
+          These are build tools, not separate network services or client runtime
+          frameworks.
+        </p>
+      </section>
+      <section>
+        <h2>Identity verification</h2>
+        <p>
+          Windows Hello integration uses
+          <a
+            href="https://github.com/Yubico/python-fido2"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Yubico python-fido2</a
+          >
+          2.2.1. <a href="licenses/fido2-COPYING">BSD license</a>; included
+          components retain their
+          <a href="licenses/fido2-COPYING.APLv2">Apache 2.0</a> and
+          <a href="licenses/fido2-COPYING.MPLv2">MPL 2.0</a> notices. Windows
+          manages fingerprint, face or PIN verification; ciXnet stores only the
+          public verification credential.
+        </p>
+      </section>
+      <section>
+        <h2>Android preview</h2>
+        <p>
+          The Android app uses Android System WebView and
+          <a
+            href="https://chaquo.com/chaquopy/"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Chaquopy 17.2</a
+          >
+          to run Python 3.12.
+          <a href="licenses/Chaquopy-LICENSE.txt">Chaquopy license (MIT)</a> ·
+          <a href="licenses/Python-LICENSE.txt">Python license</a> ·
+          <a href="licenses/pyserial-LICENSE.txt">pySerial 3.5 license (BSD)</a
+          >. This preview uses Reticulum’s built-in cryptographic provider. The
+          native receiver service handles background reception and notification
+          channels independently of the chat screen.
+        </p>
+      </section>
+      <section>
+        <h2>Phone pairing</h2>
+        <p>
+          Encrypted pairing uses Reticulum Links. Offline QR generation uses
+          <a
+            href="https://github.com/kazuhikoarase/qrcode-generator"
+            target="_blank"
+            rel="noopener noreferrer"
+            >qrcode-generator 1.4.4</a
+          >
+          (<a href="licenses/qrcode-generator-LICENSE.txt">MIT license</a>);
+          scanning uses
+          <a
+            href="https://github.com/cozmo/jsQR"
+            target="_blank"
+            rel="noopener noreferrer"
+            >jsQR 1.4.0</a
+          >
+          (<a href="licenses/jsqr-LICENSE.txt">Apache 2.0 license</a>). Camera
+          frames are decoded locally and are not uploaded.
+        </p>
+      </section>
+      <footer class="about-footer">
+        ciXnet · Independent by design · Development preview
+      </footer>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>ciXnet · Client</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="paired-banner" hidden>
+      <span id="paired-label"></span
+      ><button id="paired-disconnect" type="button">Disconnect</button>
+    </div>
+    <main id="identity-screen" class="identity-screen">
+      <div class="identity-card">
+        <div class="eyebrow">INDEPENDENT CONNECTIONS</div>
+        <img
+          class="brand"
+          src="logo.svg"
+          width="296"
+          height="82"
+          alt="ciXnet"
+        />
+        <h1>Your identity. Your network.</h1>
+        <p class="muted">Each identity has its own saved conversations.</p>
+        <div id="profiles"></div>
+        <div class="identity-actions">
+          <button id="create-open" class="primary">＋ Create identity</button
+          ><button id="import-open">Import identity</button
+          ><button id="pairing-open" type="button">Pair with phone</button>
+        </div>
+        <p>
+          <a class="about-link" href="about.html">About ciXnet · Licenses</a>
+        </p>
+        <p class="fine">
+          Windows · Linux · Android<br />Development build · Reticulum identity
+          support
+        </p>
+      </div>
+    </main>
+    <main id="client" class="client hidden">
+      <aside class="rail">
+        <span class="rail-brand" aria-label="ciXnet">ci<span>X</span>net</span>
+        <button
+          id="sidebar-toggle"
+          aria-label="Toggle sidebar"
+          title="Show or hide sidebar"
+        >
+          ☰
+        </button>
+        <div class="rail-line"></div>
+        <button
+          id="identity-switch"
+          title="Lock / switch identity"
+          aria-label="Lock / switch identity"
+        >
+          &#128274;</button
+        ><button id="settings-open" title="Settings" aria-label="Settings">
+          ⚙</button
+        ><a
+          class="about-link"
+          href="about.html"
+          aria-label="About ciXnet"
+          title="About ciXnet"
+          >ⓘ</a
+        >
+        <div class="rail-bottom">CIX<br />01</div>
+      </aside>
+      <section class="workspace">
+        <header class="topbar">
+          <img src="logo.svg" width="137" height="38" alt="ciXnet" />
+          <div class="top-right">
+            <button
+              id="mobile-settings-open"
+              class="mobile-settings"
+              title="Settings"
+              aria-label="Settings"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="21"
+                height="21"
+                aria-hidden="true"
+              >
+                <path
+                  d="M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1z"
+                />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </button>
+            <span class="build-label">CLIENT PREVIEW</span
+            ><a class="about-link" href="about.html" aria-label="About ciXnet"
+              >ⓘ</a
+            ><button id="connection-open" class="connection">
+              <span class="dot"></span> Not connected <span>⌄</span>
+            </button>
+          </div>
+        </header>
+        <nav class="mobile-tabs tabs" aria-label="Main navigation">
+          <button data-tab="contacts" class="active">Contacts</button>
+          <button data-tab="browse">Browse</button>
+          <button data-tab="announces">Announces</button>
+        </nav>
+        <div class="app-body">
+          <section class="sidebar">
+            <div class="identity-summary">
+              <span id="avatar" class="avatar"></span>
+              <div class="identity-label">
+                <strong id="nickname"></strong
+                ><small id="identity-summary-label">Personal identity</small>
+              </div>
+              <button
+                id="identity-manage"
+                class="manage-button"
+                aria-label="Manage identity"
+                title="Manage identity"
+              >
+                ✎
+              </button>
+            </div>
+            <nav class="tabs" aria-label="Main navigation">
+              <button data-tab="contacts" class="active">Contacts</button
+              ><button data-tab="browse">Browse</button
+              ><button data-tab="announces">Announces</button>
+            </nav>
+            <div class="section-title">
+              <h1 id="list-title">Messages</h1>
+              <button
+                id="compose"
+                class="icon-button"
+                aria-label="New conversation"
+              >
+                ＋
+              </button>
+            </div>
+            <label class="search"
+              ><span>⌕</span
+              ><input
+                id="search"
+                placeholder="Search contacts"
+                aria-label="Search contacts"
+            /></label>
+            <div id="list-content"></div>
+            <div class="sidebar-footer">
+              <span class="dot"></span> Reticulum transport not started
+            </div>
+          </section>
+          <div
+            id="sidebar-resize"
+            role="separator"
+            aria-label="Resize sidebar"
+            aria-orientation="vertical"
+            aria-valuemin="180"
+            aria-valuemax="430"
+            aria-valuenow="260"
+            tabindex="0"
+          ></div>
+          <section id="detail" class="detail"></section>
+        </div>
+        <footer class="app-footer">
+          <span>ciXnet / independent by design</span
+          ><span>Reticulum compatible · Development build</span>
+        </footer>
+      </section>
+    </main>
+    <dialog id="pairing-dialog" aria-labelledby="pairing-title">
+      <div class="dialog-top">
+        <h2 id="pairing-title">Phone pairing</h2>
+        <button data-close aria-label="Close">×</button>
+      </div>
+      <p class="pairing-intro">
+        Use your phone’s messages and services on this computer.
+      </p>
+      <div class="pairing-modes" role="tablist" aria-label="Set up this device">
+        <button
+          id="pairing-computer-tab"
+          type="button"
+          role="tab"
+          aria-controls="pairing-computer"
+          aria-selected="true"
+        >
+          On the computer
+        </button>
+        <button
+          id="pairing-phone-tab"
+          type="button"
+          role="tab"
+          aria-controls="pairing-phone"
+          aria-selected="false"
+        >
+          On the phone
+        </button>
+      </div>
+      <section
+        id="pairing-computer"
+        class="pairing-panel"
+        role="tabpanel"
+        aria-labelledby="pairing-computer-tab"
+      >
+        <p class="muted">
+          Create a code here, then scan it with ciXnet on your phone.
+        </p>
+        <div class="pairing-fields">
+          <label
+            >Computer name<input
+              id="pairing-name"
+              value="ciXnet desktop"
+              maxlength="64"
+          /></label>
+          <label>LAN address<select id="pairing-host"></select></label>
+        </div>
+        <label class="pairing-checkbox"
+          ><input id="pairing-firewall" type="checkbox" /><span
+            >Allow access through Windows Firewall<small
+              >Private LAN only · asks for administrator approval</small
+            ></span
+          ></label
+        >
+        <button id="pairing-create" type="button" class="primary">
+          Create pairing code
+        </button>
+        <p id="pairing-instructions" class="pairing-help">
+          Keep both devices on a reachable local network.
+        </p>
+        <img id="pairing-qr" alt="Temporary ciXnet pairing QR code" hidden />
+        <details class="pairing-alternative">
+          <summary>Use a code instead of the camera</summary>
+          <label
+            >Copy this code to your phone<textarea
+              id="pairing-export"
+              readonly
+              rows="3"
+              spellcheck="false"
+            ></textarea>
+          </label>
+        </details>
+      </section>
+      <section
+        id="pairing-phone"
+        class="pairing-panel"
+        role="tabpanel"
+        aria-labelledby="pairing-phone-tab"
+        hidden
+      >
+        <p class="muted">
+          Scan the code shown by your own computer, then choose what to share.
+        </p>
+        <button id="pairing-scan" type="button" class="primary">
+          Scan desktop code
+        </button>
+        <video id="pairing-camera" autoplay muted playsinline hidden></video>
+        <details class="pairing-alternative">
+          <summary>Paste a pairing code instead</summary>
+          <label
+            >Desktop pairing code<textarea
+              id="pairing-code"
+              rows="3"
+              spellcheck="false"
+            ></textarea>
+          </label>
+        </details>
+        <p id="pairing-review" class="pairing-help">
+          Review the computer before approving access.
+        </p>
+        <fieldset class="pairing-identities">
+          <legend>Identities to share</legend>
+          <div id="pairing-owners"></div>
+        </fieldset>
+        <button id="pairing-approve" type="button" class="primary" disabled>
+          Approve desktop access
+        </button>
+      </section>
+      <p id="pairing-status" class="pairing-status" role="status"></p>
+      <button id="pairing-use-phone" type="button" class="primary" hidden>
+        Open phone client
+      </button>
+      <section class="pairing-devices">
+        <h3>Paired devices</h3>
+        <div id="paired-devices"></div>
+      </section>
+      <p class="pairing-help pairing-footer">
+        Encrypted connection · Identity keys stay on the phone. Revoke a device
+        here to remove its access.
+      </p>
+    </dialog>
+    <dialog id="identity-dialog">
+      <form id="identity-form">
+        <div class="dialog-top">
+          <h2 id="identity-title">Create identity</h2>
+          <button type="button" data-close aria-label="Close">×</button>
+        </div>
+        <p class="muted" id="identity-description">
+          Create a genuine Reticulum identity stored on this device.
+        </p>
+        <label
+          >Nickname<input
+            id="identity-name"
+            maxlength="60"
+            required
+            autocomplete="off"
+            placeholder="How should we call you?" /></label
+        ><label id="import-field" class="hidden"
+          >Reticulum private identity file<input id="identity-file" type="file"
+        /></label>
+        <p class="notice">
+          Identity protection is configured in Settings in this development
+          build. Identity files are stored locally without application-level
+          encryption.
+        </p>
+        <p id="identity-error" class="error" role="alert"></p>
+        <button class="primary" id="identity-submit" type="submit">
+          Create identity
+        </button>
+      </form>
+    </dialog>
+    <dialog id="settings-dialog">
+      <div class="dialog-top">
+        <h2>Settings</h2>
+        <button data-close aria-label="Close">×</button>
+      </div>
+      <form id="settings-form">
+        <p class="muted">
+          Nickname, display name, and avatar are managed separately.
+        </p>
+        <button id="settings-identity" type="button">Manage identity</button
+        ><button id="settings-pairing" type="button">Phone pairing</button>
+        <h3>Offline messaging</h3>
+        <label
+          >Propagation servers
+          <textarea
+            id="propagation-servers"
+            rows="3"
+            spellcheck="false"
+            placeholder="One relay destination address per line"
+          ></textarea>
+        </label>
+        <div class="relay-picker">
+          <select
+            id="propagation-discovered"
+            aria-label="Discovered propagation servers"
+          ></select>
+          <button id="propagation-add" type="button">Add</button>
+        </div>
+        <label
+          >Delivery mode
+          <select id="delivery-mode">
+            <option value="auto">Direct and every reachable relay</option>
+            <option value="direct">Direct only</option>
+            <option value="relay">Relays only</option>
+          </select>
+        </label>
+        <p class="muted">
+          Each relay is a separate mailbox. Keep leaving copies until all have
+          one, or the recipient confirms receipt. Up to eight relays; saved
+          across restarts.
+        </p>
+        <label
+          >Check mailboxes every (minutes)
+          <input
+            id="mailbox-check-minutes"
+            type="number"
+            min="1"
+            max="60"
+            step="1"
+            required
+          />
+        </label>
+        <p class="muted">
+          Default: 5 minutes. Relay announces can trigger an earlier check when
+          the last contact was over a minute ago. More frequent checks use more
+          airtime.
+        </p>
+        <button id="propagation-sync" type="button">
+          Check relay mailboxes now
+        </button>
+        <p id="propagation-status" class="muted" aria-live="polite"></p>
+        <h3>Connection preferences</h3>
+        <label
+          >Announce every (minutes)<input
+            id="announce-minutes"
+            type="number"
+            min="1"
+            max="1440"
+            step="1"
+            required
+        /></label>
+        <p class="muted">
+          All identities on this device announce at startup, when created or
+          imported, and at this interval while the client service runs. Default:
+          15 minutes. Frequent announces use more airtime.
+        </p>
+        <label class="toggle"
+          ><span
+            >Discover local Reticulum peers<small
+              >Find nearby Reticulum peers. Changes apply when saved.</small
+            ></span
+          ><input id="local-discovery" type="checkbox" /></label
+        ><label class="toggle"
+          ><span
+            >Use ciXnet fallback gateway<small
+              >Connect automatically when no relay or transport server is
+              reachable. May use mobile data.</small
+            ></span
+          ><input id="fallback" type="checkbox"
+        /></label>
+        <div class="pairing-fields">
+          <label
+            >Gateway address<input
+              id="fallback-host"
+              value="gw.cixnet.org"
+              spellcheck="false"
+              autocomplete="off"
+          /></label>
+          <label
+            >TCP port<input
+              id="fallback-port"
+              type="number"
+              min="1"
+              max="65535"
+              value="4242"
+          /></label>
+        </div>
+        <p id="fallback-status" class="muted"></p>
+        <button id="announce-now" type="button">Announce identities now</button>
+        <h3>Interfaces</h3>
+        <p class="muted">
+          Add a TCP connection to a Reticulum server. Add, edit, enable, or
+          remove entries, then save to apply. Unreachable servers retry
+          automatically.
+        </p>
+        <div id="interface-list"></div>
+        <div class="interface-add">
+          <input
+            id="interface-name"
+            placeholder="Interface name"
+            maxlength="60"
+            aria-label="Interface name"
+          /><input
+            id="interface-host"
+            placeholder="Hostname or IP"
+            aria-label="TCP host"
+            maxlength="253"
+          />
+          <input
+            id="interface-port"
+            type="number"
+            min="1"
+            max="65535"
+            value="4242"
+            aria-label="TCP port"
+          />
+          <button id="interface-add" type="button">Add</button>
+        </div>
+        <h3>Radio stations</h3>
+        <button type="button" id="stations-open">
+          Saved stations and radio profiles
+        </button>
+        <h3>NomadNet+ graphics</h3>
+        <label
+          >Loading preference<select id="media">
+            <option value="auto">Automatic · based on connection speed</option>
+            <option value="all">Load all graphics</option>
+            <option value="text">Text only</option>
+          </select></label
+        >
+        <p class="muted">Saved for the future browser integration.</p>
+        <h3>Identity protection</h3>
+        <p id="protection-status" role="status"></p>
+        <button type="button" id="protection-enable">
+          Enable Windows Hello</button
+        ><button type="button" id="protection-disable">
+          Disable protection
+        </button>
+        <p class="notice">
+          Locking hides this identity’s interface while background reception
+          continues. Saved identity and message files are not encrypted by this
+          lock.
+        </p>
+        <p id="settings-error" class="error" role="alert"></p>
+        <button class="primary">Save settings</button>
+      </form>
+    </dialog>
+    <dialog id="connection-dialog">
+      <div class="dialog-top">
+        <h2>Connection status</h2>
+        <button data-close aria-label="Close">×</button>
+      </div>
+      <div class="status-row">
+        <span>Reticulum library</span><strong class="green">Available</strong>
+      </div>
+      <div class="status-row">
+        <span>Network transport</span><strong>Not started</strong>
+      </div>
+      <div class="status-row">
+        <span>Local discovery</span><strong>Not checked</strong>
+      </div>
+      <div class="status-row">
+        <span>ciXnet gateway</span><strong>Not configured</strong>
+      </div>
+      <p class="notice">
+        This build creates and imports real identities. It does not discover
+        peers or send messages yet. No connection is simulated.
+      </p>
+    </dialog>
+    <dialog id="compose-dialog">
+      <div class="dialog-top">
+        <h2>New conversation</h2>
+        <button data-close aria-label="Close">×</button>
+      </div>
+      <p class="muted">
+        Messaging will use LXMF. The messaging engine is not included in this
+        build yet.
+      </p>
+      <label
+        >Destination address<input
+          id="destination"
+          placeholder="32 hexadecimal characters"
+          maxlength="32"
+          autocomplete="off"
+      /></label>
+      <p id="destination-result" class="muted"></p>
+    </dialog>
+    <dialog id="manage-dialog">
+      <div class="dialog-top">
+        <h2>Manage identity</h2>
+        <button data-close aria-label="Close">×</button>
+      </div>
+      <form id="manage-form">
+        <div class="identity-preview">
+          <span id="manage-preview-avatar" class="avatar"></span>
+          <div>
+            <strong id="manage-preview-name"></strong
+            ><small>Your profile</small>
+          </div>
+        </div>
+        <label
+          >Nickname · only on this device<input
+            id="manage-nickname"
+            maxlength="60"
+            required /></label
+        ><label
+          >Display name · shared over Reticulum<input
+            id="manage-display"
+            maxlength="60"
+            required
+        /></label>
+        <p class="field-hint">
+          Published in your LXMF announces. This is a name, not a verified
+          identity.
+        </p>
+        <input id="manage-icon" type="hidden" value="account" /><label
+          >Avatar icon<input
+            id="manage-icon-search"
+            placeholder="Search icons: radio, tree, medical…"
+            autocomplete="off"
+        /></label>
+        <div id="icon-grid" class="icon-grid" aria-label="Avatar icons"></div>
+        <p id="icon-count" class="field-hint"></p>
+        <label
+          >Avatar color<select id="manage-color">
+            <option value="green">Green</option>
+            <option value="teal">Teal</option>
+            <option value="blue">Blue</option>
+            <option value="amber">Amber</option>
+            <option value="purple">Purple</option>
+            <option value="rose">Rose</option>
+          </select></label
+        >
+        <p class="field-hint">
+          Icon and colors are attached to outgoing messages using LXMF’s
+          icon-appearance field. Other compatible clients can display them. No
+          image download is needed.
+        </p>
+        <h3>Identity hash</h3>
+        <p id="manage-address" class="address-text"></p>
+        <p class="field-hint">
+          Editing this profile preserves your keys, messaging address, and
+          conversation history.
+        </p>
+        <h3>Identity backup</h3>
+        <p class="field-hint">
+          Export saves your private key as an unencrypted .identity file. Anyone
+          with it can use this identity. Keep it safe. The file does not include
+          messages or profile settings.
+        </p>
+        <div class="backup-actions">
+          <button id="manage-export" type="button">Export identity</button
+          ><button id="manage-import" type="button">Import identity</button>
+        </div>
+        <p id="manage-error" class="error" role="alert"></p>
+        <button id="manage-save" class="primary">Save identity</button>
+      </form>
+    </dialog>
+    <dialog id="about-dialog" aria-label="About ciXnet">
+      <div class="dialog-top">
+        <button id="about-back" hidden type="button">Back to About</button
+        ><button data-close aria-label="Close About" type="button">×</button>
+      </div>
+      <div id="about-content">Loading local project information…</div>
+    </dialog>
+    <div id="toast" role="status" class="toast hidden"></div>
+    <script defer src="dist/client.js"></script>
+  </body>
+</html>

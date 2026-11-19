@@ -1,0 +1,15 @@
+[Unit]
+Description=Update the static ciXnet station directory
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=cixnet-directory
+ExecStart=/usr/bin/python3 /opt/cixnet-directory/deployment/gateway/update_stations.py /var/lib/cixnet-directory/stations-v1.json
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+StateDirectory=cixnet-directory
+StandardOutput=null

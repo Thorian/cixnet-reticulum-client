@@ -1,0 +1,13 @@
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+extend-exclude = ["android/generated", "android/app/build", "node_modules"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+# These fixtures locate the sibling source projects before importing them.
+"tests/nomad_node_fixture.py" = ["E402"]
+"tests/test_core.py" = ["E402"]
+"tests/test_web_services.py" = ["E402"]

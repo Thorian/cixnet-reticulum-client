@@ -1,0 +1,44 @@
+__pycache__/
+*.pyc
+*.identity
+profiles.json
+.venv/
+node_modules/
+target/
+
+.ruff_cache/
+build/
+dist/
+
+android/generated/
+android/.gradle/
+*.keystore
+local.properties
+
+# Private runtime data and local configuration.
+*.sqlite
+*.sqlite-*
+*.db
+*.log
+*.apk
+*.aab
+*.jks
+.env
+.env.*
+!.env.example
+work/
+.idea/
+.vscode/
+
+# The browser bundle is part of the source release; other build output is not.
+!ui/dist/
+!ui/dist/client.js
+!ui/dist/client.js.map
+
+# Private caches and credentials must not enter a source release.
+*.sqlite3
+*.sqlite3-*
+identity-protection.json
+receiver-ready.json
+receiver-ready.tmp
+state/

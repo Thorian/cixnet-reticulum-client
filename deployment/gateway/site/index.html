@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Connect to the ciXnet Reticulum gateway. Gateway address, connection settings and links to the ciXnet project.">
+  <title>ciXnet · Internet gateway</title>
+  <style>
+    :root{color-scheme:dark;--bg:#101c17;--panel:#192820;--ink:#e4ecdf;--muted:#acbaa5;--green:#70e7a3;--line:#344438}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Arial,Helvetica,sans-serif}
+    main{max-width:880px;margin:auto;padding:28px 24px 36px}a{color:var(--green);text-underline-offset:4px}a:hover{color:#c0f8d5}a:focus-visible{outline:2px solid var(--green);outline-offset:5px}
+    header{display:flex;justify-content:space-between;align-items:center;gap:20px;padding-bottom:22px;border-bottom:1px solid var(--line)}.brand{font-size:32px;font-weight:700;letter-spacing:-1.5px;color:var(--ink);text-decoration:none}.brand span{color:var(--green)}.home{font-size:13px;text-decoration:none}
+    header+p{margin:26px 0 8px;color:var(--green);font:12px Consolas,monospace;letter-spacing:1.4px;text-transform:uppercase}h1{font-size:clamp(30px,5vw,44px);line-height:1.15;letter-spacing:-1px;margin:0 0 16px}h2{font-size:19px;margin:0 0 12px}.intro{font-size:17px;color:var(--muted);max-width:660px;margin-bottom:28px}
+    section,aside{margin-top:25px}p{margin:10px 0}section>p,aside p{color:var(--muted)}.endpoint{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:20px}dl{display:flex;flex-wrap:wrap;gap:16px 40px;margin:12px 0}dt{font-size:12px;color:var(--muted)}dd{margin:3px 0;font-weight:600}code{font-family:Consolas,'Courier New',monospace;color:#bcf0cf}pre{overflow:auto;background:#0b1410;border:1px solid var(--line);border-radius:6px;padding:16px;font-size:14px;line-height:1.5}ol{padding-left:22px}li{padding-left:4px;margin:6px 0}.note,.endpoint>p,aside p{font-size:14px}aside{border-top:1px solid var(--line);padding-top:20px}aside h2{font-size:16px}footer{display:flex;justify-content:space-between;gap:16px;margin-top:30px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}@media(max-width:520px){main{padding:20px 16px}dl{display:block}dl>div+div{margin-top:12px}footer{flex-direction:column;gap:6px}.endpoint{padding:16px}}
+  </style>
+</head>
+<body>
+  <main>
+    <header><a class="brand" href="https://cixnet.org/" aria-label="ciXnet homepage">ci<span>X</span>net</a><a class="home" href="https://cixnet.org/">Project homepage <span aria-hidden="true">↗</span></a></header>
+    <p>Reticulum Internet gateway</p>
+    <h1>ciXnet gateway</h1>
+    <p class="intro">Connect your ciXnet client to Reticulum over the Internet. Your local network and radio interfaces can keep working alongside it.</p>
+    <section class="endpoint" aria-labelledby="endpoint-title">
+      <h2 id="endpoint-title">Connection details</h2>
+      <dl><div><dt>Gateway address</dt><dd><code>gw.cixnet.org</code></dd></div><div><dt>TCP port</dt><dd><code>4242</code></dd></div><div><dt>Interface</dt><dd>Reticulum TCP client</dd></div></dl>
+      <p>This web page and the Reticulum connection use separate ports. Enter the hostname in your client without <code>https://</code>.</p>
+    </section>
+    <section aria-labelledby="setup-title"><h2 id="setup-title">In the ciXnet app</h2><ol><li>Open <strong>Settings</strong>.</li><li>Enable <strong>Use ciXnet fallback gateway</strong>.</li><li>Set the address to <strong>gw.cixnet.org</strong> and the TCP port to <strong>4242</strong>, then save.</li></ol><p>These are the default settings. The client uses the fallback when no relay or transport server is reachable. An ordinary nearby peer does not count as a connection server. Internet access is required; mobile data may be used.</p><p>You can disable the fallback or change its address and port at any time.</p></section>
+    <section aria-labelledby="native-title"><h2 id="native-title">Using another Reticulum client?</h2><p>Add a TCP client interface in its Reticulum configuration:</p><pre><code>[[ciXnet gateway]]
+type = TCPClientInterface
+enabled = Yes
+target_host = gw.cixnet.org
+target_port = 4242</code></pre><p class="note">Place this entry inside your existing <code>[interfaces]</code> section. Keep your other interfaces.</p></section>
+    <section aria-labelledby="mailbox-title">
+      <h2 id="mailbox-title">Offline messages · LXMF propagation</h2>
+      <p>This server can hold encrypted LXMF messages while a recipient is offline. In your client's propagation node or relay settings, enter this destination address:</p>
+      <pre><code>49ec09143c134d6bb5d8b522c4cefa37</code></pre>
+      <p>The propagation address is a Reticulum destination hash, not a hostname. First connect to <strong>gw.cixnet.org:4242</strong>, then select the address above as your LXMF propagation node. Enable mailbox checking or synchronisation in your client to collect waiting messages.</p>
+      <p>Fresh ciXnet installations include this node by default. Other clients may call this setting a propagation node, propagation server or relay.</p>
+    </section>
+    <section aria-labelledby="dns-title"><h2 id="dns-title">ciXnet DNS · .cix names</h2>
+    <p>Add this Reticulum destination in your client's name server settings and assign it the suffix <strong>.cix</strong>:</p>
+    <pre><code>48a1ab73497b08453287f12630883de6</code></pre>
+    <p>ciXnet includes this mapping by default. Existing custom .cix mappings are kept, and you can change or remove it. This is a retdns service over Reticulum; it does not use Internet DNS port 53.</p>
+    </section>
+    <aside><h2>About this gateway</h2><p>This gateway connects to the wider Reticulum network through CRN, MichMesh and RNS TCP Node Germany 002. It depends on Internet connectivity. Local Reticulum links remain independent. A gateway connection does not itself select an LXMF propagation mailbox or guarantee message delivery.</p></aside>
+    <footer><span>ciXnet · Independent by design</span><a href="https://cixnet.org/">Explore the project →</a></footer>
+  </main>
+</body>
+</html>
