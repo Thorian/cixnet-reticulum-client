@@ -6,7 +6,7 @@ RUNTIME_VERSIONS = {
     "rns": "1.6.1",
     "lxmf": "1.3.1",
     "retdns": "0.2.1",
-    "nomadpl": "0.3.0",
+    "nomadpl": "0.3.1",
 }
 
 

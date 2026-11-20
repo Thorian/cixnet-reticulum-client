@@ -8,8 +8,18 @@ import threading
 import time
 
 import RNS
+from RNS.Interfaces.TCPInterface import TCPClientInterface
 
 NAME = "ciXnet automatic gateway"
+
+
+class ConnectedTCPInterface(TCPClientInterface):
+    """Start a reader for the socket already opened on the selected network."""
+
+    def final_init(self):
+        # Reticulum calls this during registration. The normal TCP initializer
+        # opens another socket; this interface must retain the supplied one.
+        threading.Thread(target=self.read_loop, daemon=True).start()
 
 
 def validate_gateway(host, port):
@@ -197,9 +207,7 @@ class FallbackGateway:
             self.phase = "retrying"
             return
         try:
-            from RNS.Interfaces.TCPInterface import TCPClientInterface
-
-            interface = TCPClientInterface(
+            interface = ConnectedTCPInterface(
                 RNS.Transport, {"name": NAME}, connected_socket=connection
             )
             # Less aggressive TCP keepalives than a continuously probed 5-second
@@ -223,7 +231,6 @@ class FallbackGateway:
             interface.never_connected = False
             self.network.core._add_interface(interface)
             self.interface = interface
-            threading.Thread(target=interface.read_loop, daemon=True).start()
             interface.wants_tunnel = True
             self.failures = 0
             self.error = None

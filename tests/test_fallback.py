@@ -13,7 +13,7 @@ import test_core  # noqa: F401, I001 - bootstrap optional dependency paths first
 
 import RNS
 
-from fallback import NAME, FallbackGateway, validate_gateway
+from fallback import NAME, ConnectedTCPInterface, FallbackGateway, validate_gateway
 from profiles import ProfileStore
 
 
@@ -26,6 +26,18 @@ class GatewayTests(unittest.TestCase):
         self.internet = Mock()
         self.internet.prepare.return_value = "default"
         self.gateway = FallbackGateway(self.network, self.internet, lambda: self.now)
+
+    def test_preconnected_interface_starts_only_its_existing_socket_reader(self):
+        interface = object.__new__(ConnectedTCPInterface)
+        with (
+            patch.object(interface, "read_loop") as reader,
+            patch("fallback.threading.Thread") as thread,
+            patch.object(interface, "initial_connect") as connect,
+        ):
+            interface.final_init()
+        thread.assert_called_once_with(target=reader, daemon=True)
+        thread.return_value.start.assert_called_once_with()
+        connect.assert_not_called()
 
     def test_default_migration_persistence_and_validation(self):
         with tempfile.TemporaryDirectory() as directory:

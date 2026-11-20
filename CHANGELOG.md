@@ -2,6 +2,8 @@
 
 ## 0.1.1 — unreleased
 
+- Fix fallback socket startup after the Reticulum upgrade, preventing corrupted or stalled page transfers.
+- Retry NomadPL route discovery if a page opens before the gateway connects.
 - Update Reticulum to 1.6.1 and LXMF to 1.3.1.
 - Retain messages from unknown senders until their public keys arrive and signatures can be checked.
 - Remember identity disclosure across pages on the same node.

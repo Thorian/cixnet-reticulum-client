@@ -162,8 +162,17 @@ def main():
                 api_level=adb("shell", "getprop", "ro.build.version.sdk"),
             )
             original = mobile.get("state")["settings"]
-            owner = mobile.post(
-                "identity/create", {"nickname": "Android emulator test"}
+            existing = next(
+                (
+                    p
+                    for p in mobile.get("state")["profiles"]
+                    if p["nickname"] == "Android emulator test"
+                ),
+                None,
+            )
+            owner = (
+                existing
+                or mobile.post("identity/create", {"nickname": "Android emulator test"})
             )["id"]
             mobile_address = mobile.post("messaging/activate", {"owner": owner})[
                 "address"
@@ -233,7 +242,8 @@ def main():
                 lambda: any(
                     x["address"] == mobile_address
                     for x in sender.get("network")["announces"]
-                )
+                ),
+                timeout=900,  # First production-strength destination stamp is cached.
             )
 
             def deliver(text):

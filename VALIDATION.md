@@ -1,14 +1,18 @@
 # Validation — 19 November 2026
 
-## Reticulum 1.6.1 migration
+## 0.1.1 release checks
 
 - Client runtime pins and native build checks now use Reticulum 1.6.1 and LXMF 1.3.1.
-- All 85 Python tests and 39 frontend tests pass. The isolated network fixtures use valid lower-cost stamps to avoid repeating production-strength stamp work for every throwaway identity; production retains the upstream stamp costs.
+- All 86 Python tests and 39 frontend tests pass. The isolated network fixtures use valid lower-cost stamps to avoid repeating production-strength stamp work for every throwaway identity; production retains the upstream stamp costs.
 - Node identity choices persist across page paths, query strings, restarts and DNS aliases, while other nodes and local identities remain separate. Legacy page choices are retained on upgrade.
 - Client announces default to 45 minutes; saved custom intervals and server intervals are preserved.
 - Windows startup passed with a fresh data folder. The Android package uses Reticulum’s portable stamp worker in Chaquopy.
 - Gateway, propagation and DNS services are upgraded and retain their identities. Live DNS resolution and offline message upload/retrieval passed. Linux image/chat services restarted on the new versions; 36 tests and both local health probes passed.
-- The published 0.1.0 preview remains unchanged. The next client release is intended as a regular GitHub release.
+- The fallback TCP interface now starts one reader on its supplied socket. A real fallback delivery test and live identified NomadPL page load passed.
+- NomadPL 0.3.1 retries route discovery within the request deadline when the gateway connects after a page is opened.
+- Windows packaging and a fresh-profile packaged startup check passed. Android uses the existing signing certificate, application ID and APK filename.
+- The Android 15 emulator received messages and posted notifications without message bodies, kept receiving after the interface process closed, recovered its receiver and saved history after process termination, and delivered a queued message after reconnecting.
+- 0.1.1 is published as a regular GitHub release. The 0.1.0 preview remains unchanged.
 
 The notes below describe the original preview checks.
 
