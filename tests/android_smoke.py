@@ -247,13 +247,13 @@ def main():
             )
 
             def deliver(text):
-                sender.post(
+                sent = sender.post(
                     "messaging/send",
                     {"owner": sender_owner, "peer": mobile_address, "content": text},
                 )
                 wait_for(
                     lambda: any(
-                        x["content"] == text
+                        x["id"] == sent["id"]
                         for x in mobile.post("messaging/history", {"owner": owner})[
                             "messages"
                         ]
@@ -314,7 +314,7 @@ def main():
             passed("Receiver process recovers with saved identities and messages")
             process.stdin.close()
             process.wait(timeout=15)
-            mobile.post(
+            queued = mobile.post(
                 "messaging/send",
                 {
                     "owner": owner,
@@ -325,7 +325,7 @@ def main():
             sender = start_sender()
             wait_for(
                 lambda: any(
-                    x["content"] == "Queued through network interruption"
+                    x["id"] == queued["id"]
                     for x in sender.post("messaging/history", {"owner": sender_owner})[
                         "messages"
                     ]
@@ -366,7 +366,7 @@ def main():
             adb("shell", "dumpsys", "battery", "unplug")
             idle = adb("shell", "dumpsys", "deviceidle", "force-idle", check=False)
             if "Now forced" in idle:
-                sender.post(
+                doze_message = sender.post(
                     "messaging/send",
                     {
                         "owner": sender_owner,
@@ -379,7 +379,7 @@ def main():
                 adb("shell", "dumpsys", "battery", "reset")
                 wait_for(
                     lambda: any(
-                        x["content"] == "Doze recovery check"
+                        x["id"] == doze_message["id"]
                         for x in mobile.post("messaging/history", {"owner": owner})[
                             "messages"
                         ]

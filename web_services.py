@@ -258,7 +258,9 @@ class WebServices:
             )
             if authority is None:
                 raise ValueError("Add a DNS server for ." + suffix + " first")
-            with Resolver(authority["address"], self.cache) as resolver:
+            with Resolver(
+                authority["address"], self.cache, require_announce=True
+            ) as resolver:
                 address = resolver.resolve(normalize_name(name))
         if is_html:
             return str(

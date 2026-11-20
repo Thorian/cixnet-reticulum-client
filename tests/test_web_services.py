@@ -69,6 +69,9 @@ class WebServicesTests(unittest.TestCase):
                 resolver.return_value.__enter__.return_value.resolve.assert_called_once_with(
                     "home.ret"
                 )
+                resolver.assert_called_once_with(
+                    "a" * 32, web.cache, require_announce=True
+                )
             web.save(first, ".cix", None, remove=True)
             self.assertEqual(web.servers(first)["saved"], [])
             after_removal = WebServices(profiles)
@@ -76,6 +79,28 @@ class WebServicesTests(unittest.TestCase):
             after_removal.db.close()
             web.db.close()
             reopened.db.close()
+
+    def test_address_only_dns_reply_is_not_silently_accepted(self):
+        """A configured authority must provide the destination's signed announce."""
+        with (
+            tempfile.TemporaryDirectory() as directory,
+            patch("web_services.Discovery.start"),
+            patch("retdns.resolver.Transport") as transport,
+        ):
+            profiles = ProfileStore(directory)
+            owner = profiles.create("Signed DNS test")["id"]
+            web = WebServices(profiles)
+            transport.return_value.query.return_value = {
+                "version": 1,
+                "status": "ok",
+                "record": {"name": "home", "address": "b" * 32, "ttl": 60},
+            }
+            with self.assertRaisesRegex(ConnectionError, "Invalid retdns response"):
+                web.canonical(owner, "home.cix")
+            self.assertIsNone(
+                web.cache.lookup_name("48a1ab73497b08453287f12630883de6", "home")
+            )
+            web.db.close()
 
     def test_invalid_authorities_are_rejected(self):
         """Reject malformed authority choices before modifying saved DNS settings."""

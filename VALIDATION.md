@@ -1,4 +1,16 @@
-# Validation — 19 November 2026
+# Validation — 20 November 2026
+
+## 0.1.2 release checks
+
+- Updated retdns to 0.3.0. The client explicitly requires signed destination announces from configured DNS authorities.
+- All 41 retdns tests passed, including the real-network test. Client regression coverage rejects address-only replies without caching them.
+- The gateway retains its DNS identity and records. Both registered destinations have signed announces. Existing retdns 0.2.1 clients still resolve against the upgraded server.
+- A fresh client resolved relay.cix, verified and cached its signed announce, restored keys from cache without a network lookup, and opened a real link to the resolved propagation destination. The DNS self-record also returned its signed announce.
+- Windows and Android builds completed. The Windows package passed fresh-profile startup, and the APK retains its existing signing certificate and application ID.
+- All 87 Python tests and 39 frontend tests passed. The local DNS fixture registers genuine signed site announces for the co-hosted sites.
+- The Android emulator resolved relay.cix through the public DNS server, then resolved it again after restarting without a network connection. The saved destination announce passed signature verification.
+- Android X25519 public-key generation uses the bundled OpenSSL 3.5.9 and checks the RFC 7748 public-key vector at receiver startup. A production-strength DNS link succeeded where pure-Python stamp generation had timed out.
+- Packaged Android crypto checks matched eight random public keys against Reticulum's original implementation. In this emulator, 1,000 public-key derivations took 0.087 seconds and a valid production-cost stamp took 0.233 seconds.
 
 ## 0.1.1 release checks
 

@@ -8,7 +8,7 @@ pywebview 6.2.1 supplies the desktop window under its MIT license. Windows uses 
 
 Source runs import Reticulum from the active Python environment or an explicitly selected checkout. Native packages bundle it and preserve its license. Reticulum 1.6.1 is distributed under the custom Reticulum License, copyright 2016–2026 Mark Qvist. It includes restrictions on purposeful harm and AI/model-training dataset uses. Its license must be preserved when distributing Reticulum with the client. The MIT license here applies only to original ciXnet code/artwork, not Reticulum or other dependencies.
 
-LXMF 1.3.0 is imported from the active environment; --lxmf-path can select a source checkout. Its custom Reticulum License, copyright 2020–2025 Mark Qvist, has the same purposeful-harm and AI/model-training restrictions as the Reticulum license inspected above. Native packages bundle LXMF and preserve its license.
+LXMF 1.3.1 is imported from the active environment; --lxmf-path can select a source checkout. Its custom Reticulum License, copyright 2020–2025 Mark Qvist, has the same purposeful-harm and AI/model-training restrictions as the Reticulum license inspected above. Native packages bundle LXMF and preserve its license.
 
 Python and the installed Reticulum dependencies retain their own licenses. Android packages use Chaquopy as described below. NomadNet protocol and Micron documentation/source were consulted for interoperability. The browser and renderer are independently implemented here; no NomadNet application code is bundled. Native build scripts collect dependency licenses and a version inventory.
 
@@ -39,6 +39,8 @@ Camera capture now offers review, Retake and Use photo. Use photo attaches to th
 Android preview: Chaquopy 17.2.0 (MIT) embeds CPython 3.12 (PSF license) and uses Android System WebView supplied by the device. Android SDK, Android Gradle Plugin 8.7.3 and Gradle 8.9 are build tools. Reticulum uses its supported internal crypto provider in this preview; no older PyCA Android wheel is bundled. Upstream signal-handler registration is guarded in Android build copies because service shutdown is owned by Android; original upstream source folders remain unchanged.
 
 The Android preview includes pySerial 3.5 (BSD); its original notice is retained at ui/licenses/pyserial-LICENSE.txt.
+
+Android X25519 public-key multiplication uses OpenSSL 3.5.9 (Apache 2.0), already bundled with Chaquopy's CPython runtime. Its notice is retained at ui/licenses/OpenSSL-LICENSE.txt. Reticulum continues to generate private keys, exchange keys, search for stamps and verify them using its existing code. Source: https://openssl-library.org/.
 
 ## Offline phone pairing QR codes
 

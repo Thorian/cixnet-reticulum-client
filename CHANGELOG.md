@@ -1,6 +1,15 @@
 # Changelog
 
-## 0.1.1 — unreleased
+## 0.1.2 — 20 November 2026
+
+- Update retdns to 0.3.0 and require signed destination announces in DNS replies.
+- Restore verified destination keys and metadata from network lookups and saved DNS cache entries.
+- Upgrade existing DNS caches in place, retaining configured authorities and suffixes.
+- Speed up Android link-request stamps with native OpenSSL X25519 public-key generation, retaining Reticulum's standard difficulty and verification.
+
+Custom DNS servers must support signed-announce replies. Older address-only authorities need upgrading. The default ciXnet authority has been upgraded.
+
+## 0.1.1 — 19 November 2026
 
 - Fix fallback socket startup after the Reticulum upgrade, preventing corrupted or stalled page transfers.
 - Retry NomadPL route discovery if a page opens before the gateway connects.

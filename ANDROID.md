@@ -53,3 +53,13 @@ Incoming messages now request the system-default vibration with the VIBRATE perm
 Station location: Use my location requests foreground coarse/fine location only on demand through the trusted local WebView origin. Remote NomadPL origins are refused. A one-fix location watch stops on completion, dialog close or hiding the app; no background location permission is requested. Manual coordinate entry remains available.
 
 Reticulum 1.6.1 generates network stamps by default. The embedded Python runtime uses Reticulum’s portable single-process stamp worker because Chaquopy cannot fork workers. Stamps are cached by Reticulum; first use of a new identity can consume more CPU than later starts.
+
+X25519 public-key multiplication uses OpenSSL already bundled with Python. The Android adapter checks an RFC 7748 vector at startup; private-key generation, key exchange and stamp verification remain in Reticulum.
+
+To run the packaged crypto regression, build `assembleDebugAndroidTest` with `-PtestRunner=net.cixnet.client.CryptoInstrumentation` and the same `-PbuildPython` used for the app. Install both test and app APKs, then run:
+
+```text
+adb shell am instrument -w net.cixnet.client.test/net.cixnet.client.CryptoInstrumentation
+```
+
+The test compares public keys with Reticulum's original implementation and generates and verifies a production-cost link stamp. Timing results appear in the Python logcat output.
