@@ -17,6 +17,7 @@ class ClientServer(HTTPServer):
         self.application.pairing.tick()
         self.application.messaging.announce_due()
         self.application.messaging.outbox.tick()
+        self.application.messaging.verify_pending()
 
 
 def parse_arguments(argv=None):

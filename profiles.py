@@ -53,7 +53,7 @@ class ProfileStore:
             state["settings"].setdefault("fallback", True)
             state["settings"].setdefault("fallbackHost", "gw.cixnet.org")
             state["settings"].setdefault("fallbackPort", 4242)
-            state["settings"].setdefault("announceMinutes", 15)
+            state["settings"].setdefault("announceMinutes", 45)
             state["settings"].setdefault("propagationServers", [])
             state["settings"].setdefault("deliveryMode", "auto")
             state["settings"].setdefault("mailboxCheckMinutes", 5)
@@ -161,7 +161,7 @@ class ProfileStore:
             raise ValueError("Invalid message delivery mode")
         if mode == "relay" and not servers:
             raise ValueError("Relay delivery needs at least one propagation server")
-        interval = fields.get("announceMinutes", 15)
+        interval = fields.get("announceMinutes", 45)
         mailbox_interval = fields.get("mailboxCheckMinutes", 5)
         if type(mailbox_interval) is not int or not 1 <= mailbox_interval <= 60:
             raise ValueError("Mailbox check interval must be 1–60 whole minutes")

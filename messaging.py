@@ -27,7 +27,7 @@ class Messaging:
         self.pending = {}
         self.on_message = None
         self.profiles = {}
-        self.announce_minutes = 15
+        self.announce_minutes = 45
         self.last_announced = {}
         self.db = sqlite3.connect(
             str(data / "messages.sqlite"), check_same_thread=False
@@ -83,7 +83,12 @@ class Messaging:
             WHERE direction = 'out' AND status IN ('queued', 'sending')
             """
         )
+        self.db.execute(
+            "CREATE TABLE IF NOT EXISTS unverified_messages "
+            "(id TEXT, owner TEXT, peer TEXT, packed BLOB, received REAL, PRIMARY KEY(id,owner))"
+        )
         self.db.commit()
+        self.next_verification = 0
         self.outbox = Outbox(self)
 
     def blocked_contacts(self, owner):
@@ -178,6 +183,11 @@ class Messaging:
     def receive(self, owner, message):
         """Persist only authenticated messages and validated optional appearance."""
         if not message.signature_validated:
+            if (
+                getattr(message, "unverified_reason", None)
+                == LXMF.LXMessage.SOURCE_UNKNOWN
+            ):
+                self.defer_verification(owner, message)
             return
         if message.source_hash.hex() in self.blocked_contacts(owner):
             return
@@ -233,6 +243,62 @@ class Messaging:
                 self.on_message(owner, message.source_hash.hex(), message.hash.hex())
             except Exception:
                 logging.exception("Incoming message was saved but notification failed")
+
+    def defer_verification(self, owner, message):
+        """Keep signed bytes until the sender's public key becomes available."""
+        packed = message.packed
+        if not isinstance(packed, bytes) or len(packed) > 8 * 1024 * 1024:
+            return
+        peer = message.source_hash.hex()
+        if peer in self.blocked_contacts(owner):
+            return
+        with self.lock:
+            self.db.execute(
+                "DELETE FROM unverified_messages WHERE received<?",
+                (time.time() - 7 * 86400,),
+            )
+            count, size = self.db.execute(
+                "SELECT COUNT(*),COALESCE(SUM(LENGTH(packed)),0) FROM unverified_messages"
+            ).fetchone()
+            if count >= 100 or size + len(packed) > 64 * 1024 * 1024:
+                logging.warning("Pending message verification storage is full")
+                return
+            self.db.execute(
+                "INSERT OR IGNORE INTO unverified_messages VALUES (?,?,?,?,?)",
+                (message.hash.hex(), owner, peer, packed, time.time()),
+            )
+            self.db.commit()
+
+    def verify_pending(self):
+        """Retry authentication without exposing unverified content to the UI."""
+        now = time.monotonic()
+        if now < self.next_verification:
+            return
+        self.next_verification = now + 2
+        with self.lock:
+            rows = self.db.execute(
+                "SELECT id,owner,peer,packed,received FROM unverified_messages"
+            ).fetchall()
+        for ident, owner, peer, packed, received in rows:
+            if time.time() - received < 7 * 86400 and peer not in self.blocked_contacts(
+                owner
+            ):
+                if RNS.Identity.recall(bytes.fromhex(peer)) is None:
+                    self.outbox.request_path(peer)
+                    continue
+                try:
+                    message = LXMF.LXMessage.unpack_from_bytes(packed)
+                    if message.signature_validated:
+                        self.receive(owner, message)
+                except Exception:
+                    logging.exception("Could not verify a retained incoming message")
+                    continue
+            with self.lock:
+                self.db.execute(
+                    "DELETE FROM unverified_messages WHERE id=? AND owner=?",
+                    (ident, owner),
+                )
+                self.db.commit()
 
     def store(
         self, ident, owner, peer, direction, content, status, files=None, commit=True

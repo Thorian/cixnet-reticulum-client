@@ -23,7 +23,7 @@ class FallbackIntegrationTests(unittest.TestCase):
             def start(index):
                 command = [
                     sys.executable,
-                    str(ROOT / "server.py"),
+                    str(ROOT / "tests" / "client_fixture.py"),
                     "--no-local",
                     "--desktop-parent",
                     "--port",

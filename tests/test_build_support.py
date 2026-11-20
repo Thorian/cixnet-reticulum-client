@@ -13,7 +13,7 @@ class BuildDependencyTests(unittest.TestCase):
     def test_stale_library_blocks_packaging(self):
         versions = {**RUNTIME_VERSIONS, "nomadpl": "0.2.0"}
         with patch("build_support.version", side_effect=versions.__getitem__):
-            with self.assertRaisesRegex(RuntimeError, "nomadpl 0.3.0; found 0.2.0"):
+            with self.assertRaisesRegex(RuntimeError, "nomadpl 0.3.1; found 0.2.0"):
                 check_dependencies()
 
     def test_reviewed_source_overrides_can_replace_installed_libraries(self):

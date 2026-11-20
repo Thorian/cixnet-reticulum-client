@@ -27,6 +27,13 @@ class IdentityProtection:
         self.jobs = {}
         self.lock = threading.RLock()
         self.epochs = {}
+        self._available = False
+        # Loading the native authenticator can be slow during stamp generation.
+        # Capability discovery must not hold up state polling or message handling.
+        threading.Thread(target=self._probe_available, daemon=True).start()
+
+    def _probe_available(self):
+        self._available = self.available()
 
     @staticmethod
     def available():
@@ -45,7 +52,7 @@ class IdentityProtection:
             return dict(
                 protected=protected,
                 locked=protected and owner not in self.unlocked,
-                available=self.available(),
+                available=self._available,
             )
 
     def require_unlocked(self, owner):

@@ -87,6 +87,15 @@ class ProfileTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.store.export("../../outside")
 
+    def test_client_announce_default_preserves_custom_interval(self):
+        self.assertEqual(self.store.read()["settings"]["announceMinutes"], 45)
+        self.store.save_settings(
+            {**self.store.read()["settings"], "announceMinutes": 17}
+        )
+        self.assertEqual(
+            ProfileStore(self.store.directory).read()["settings"]["announceMinutes"], 17
+        )
+
     def test_settings_validation_is_atomic(self):
         """Leave saved settings unchanged when any submitted option is invalid."""
         settings = {

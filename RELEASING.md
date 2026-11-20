@@ -10,3 +10,5 @@
 Signing keys, profiles, runtime databases, logs, generated Android sources, build caches and development configuration do not belong in the repository. Preserve the existing Android signing key privately; regenerating it prevents normal updates to installed previews.
 
 The source export does not create a GitHub repository, push commits or publish binaries. Choose the repository name and visibility before that step. No release upload is automated.
+
+Publish 0.1.1 as a regular GitHub release. Keep 0.1.0-preview unchanged.
