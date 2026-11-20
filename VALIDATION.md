@@ -9,7 +9,8 @@
 - Windows and Android builds completed. The Windows package passed fresh-profile startup, and the APK retains its existing signing certificate and application ID.
 - All 87 Python tests and 39 frontend tests passed. The local DNS fixture registers genuine signed site announces for the co-hosted sites.
 - The Android emulator resolved relay.cix through the public DNS server, then resolved it again after restarting without a network connection. The saved destination announce passed signature verification.
-- Android X25519 public-key generation uses Bouncy Castle 1.87 and checks the RFC 7748 public-key vector at receiver startup. A production-strength DNS link succeeded where pure-Python stamp generation had timed out.
+- Android X25519 public-key generation uses the bundled OpenSSL 3.5.9 and checks the RFC 7748 public-key vector at receiver startup. A production-strength DNS link succeeded where pure-Python stamp generation had timed out.
+- Packaged Android crypto checks matched eight random public keys against Reticulum's original implementation. In this emulator, 1,000 public-key derivations took 0.087 seconds and a valid production-cost stamp took 0.233 seconds.
 
 ## 0.1.1 release checks
 

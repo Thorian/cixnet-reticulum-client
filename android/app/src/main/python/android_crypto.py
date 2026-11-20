@@ -1,18 +1,46 @@
-"""Accelerate Reticulum's X25519 public keys using the bundled Java provider."""
+"""Use CPython's bundled OpenSSL for Android X25519 public-key multiplication."""
 
 
 def install():
-    import RNS.Cryptography
-    from java import jclass
+    import ctypes
 
-    native_key = jclass("net.cixnet.client.X25519Keys")
+    import RNS.Cryptography
+
+    crypto = ctypes.CDLL("libcrypto_python.so")
+    create = crypto.EVP_PKEY_new_raw_private_key_ex
+    create.argtypes = [
+        ctypes.c_void_p,
+        ctypes.c_char_p,
+        ctypes.c_char_p,
+        ctypes.c_char_p,
+        ctypes.c_size_t,
+    ]
+    create.restype = ctypes.c_void_p
+    read = crypto.EVP_PKEY_get_raw_public_key
+    read.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.POINTER(ctypes.c_size_t)]
+    read.restype = ctypes.c_int
+    free = crypto.EVP_PKEY_free
+    free.argtypes = [ctypes.c_void_p]
+    free.restype = None
     private_key = RNS.Cryptography.X25519PrivateKey
     public_key = RNS.Cryptography.X25519PublicKey
 
     def derive(key):
-        return bytes(native_key.publicKey(key))
+        if len(key) != 32:
+            raise ValueError("X25519 requires a 32-byte private key")
+        handle = create(None, b"X25519", None, key, len(key))
+        if not handle:
+            raise RuntimeError("OpenSSL could not load the X25519 key")
+        try:
+            output = ctypes.create_string_buffer(32)
+            size = ctypes.c_size_t(32)
+            if read(handle, output, ctypes.byref(size)) != 1 or size.value != 32:
+                raise RuntimeError("OpenSSL could not derive the X25519 public key")
+            return output.raw
+        finally:
+            free(handle)
 
-    # RFC 7748, section 6.1: check the Java bridge before changing the provider.
+    # RFC 7748, section 6.1: check the native bridge before changing the provider.
     secret = bytes.fromhex(
         "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a"
     )

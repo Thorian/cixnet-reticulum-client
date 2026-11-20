@@ -40,7 +40,7 @@ Android preview: Chaquopy 17.2.0 (MIT) embeds CPython 3.12 (PSF license) and use
 
 The Android preview includes pySerial 3.5 (BSD); its original notice is retained at ui/licenses/pyserial-LICENSE.txt.
 
-Bouncy Castle Java 1.87 (MIT) supplies X25519 public-key multiplication on Android. Its original notice is retained at ui/licenses/BouncyCastle-LICENSE.txt. Reticulum continues to generate private keys, exchange keys, search for stamps and verify them using its existing code. This avoids slow pure-Python public-key multiplication during link-request stamp generation. Source: https://www.bouncycastle.org/.
+Android X25519 public-key multiplication uses OpenSSL 3.5.9 (Apache 2.0), already bundled with Chaquopy's CPython runtime. Its notice is retained at ui/licenses/OpenSSL-LICENSE.txt. Reticulum continues to generate private keys, exchange keys, search for stamps and verify them using its existing code. Source: https://openssl-library.org/.
 
 ## Offline phone pairing QR codes
 

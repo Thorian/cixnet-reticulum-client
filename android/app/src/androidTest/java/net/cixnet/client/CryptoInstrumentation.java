@@ -21,7 +21,7 @@ public final class CryptoInstrumentation extends Instrumentation {
       if (!Python.isStarted()) Python.start(new AndroidPlatform(getTargetContext()));
       Python python = Python.getInstance();
       python.getModule("builtins").callAttr("exec", """
-          import json, os, time
+          import json, ssl, time
           import android_crypto
           import RNS.Cryptography, RNS.Stamps
           from RNS.Cryptography.X25519 import curve25519_base
@@ -39,10 +39,11 @@ public final class CryptoInstrumentation extends Instrumentation {
           pair, value = RNS.Stamps.generate_stamped_key(material, 12.5)
           assert pair and RNS.Stamps.stamp_valid(pair[1], 12.5, material)
           assert RNS.Cryptography.X25519PrivateKey.from_private_bytes(pair[0]).public_key().public_bytes() == pair[1]
-          print(json.dumps({'x25519_1000_seconds': derivations_seconds,
+          print(json.dumps({'openssl': ssl.OPENSSL_VERSION,
+                            'x25519_1000_seconds': derivations_seconds,
                             'production_stamp_seconds': time.monotonic() - start,
                             'stamp_value': value}), flush=True)
-          """);
+          """, python.getModule("builtins").callAttr("dict"));
       report.putString("crypto", "passed");
       finish(Activity.RESULT_OK, report);
     } catch (Throwable error) {

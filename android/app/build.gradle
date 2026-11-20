@@ -16,9 +16,6 @@ android {
     sourceSets { main { assets.srcDir '../generated/assets' } }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
-dependencies {
-    implementation 'org.bouncycastle:bcprov-jdk18on:1.87'
-}
 chaquopy {
     defaultConfig {
         version = '3.12'
