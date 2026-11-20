@@ -5,12 +5,12 @@ def install():
     import RNS.Cryptography
     from java import jclass
 
-    native_key = jclass("org.bouncycastle.crypto.params.X25519PrivateKeyParameters")
+    native_key = jclass("net.cixnet.client.X25519Keys")
     private_key = RNS.Cryptography.X25519PrivateKey
     public_key = RNS.Cryptography.X25519PublicKey
 
     def derive(key):
-        return bytes(native_key(key, 0).generatePublicKey().getEncoded())
+        return bytes(native_key.publicKey(key))
 
     # RFC 7748, section 6.1: check the Java bridge before changing the provider.
     secret = bytes.fromhex(

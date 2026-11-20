@@ -56,8 +56,8 @@ class AndroidInternet:
 
 
 def run(service, directory, ui):
-    import RNS.Stamps
     import android_crypto
+    import RNS.Stamps
 
     android_crypto.install()
 
