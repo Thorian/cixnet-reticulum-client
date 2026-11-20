@@ -103,7 +103,7 @@ class NomadBrowser:
                 (owner, node),
             ).fetchone()
             if row is None:
-                # Keep the most recently chosen page setting when upgrading.
+                # Reuse the last stored page entry; future choices are node-wide.
                 row = self.db.execute(
                     "SELECT identify FROM page_identity WHERE owner=? AND (url=? OR url LIKE ?) ORDER BY rowid DESC LIMIT 1",
                     (owner, url, legacy_prefix),

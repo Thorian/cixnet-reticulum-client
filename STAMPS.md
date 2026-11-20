@@ -1,3 +1,13 @@
+# Stamps
+
+The client now uses Reticulum 1.6.1 and LXMF 1.3.1. Reticulum generates network stamps by default, including destination announces and path requests. These are separate from LXMF message stamps.
+
+Production keeps Reticulum’s stamp difficulty defaults. First use of a new destination can require substantial CPU work; Reticulum caches its completed destination stamp for reuse. Client configuration limits stamp workers to one. Android uses Reticulum’s portable worker because its embedded Python runtime cannot fork processes.
+
+Messages that arrive before the sender’s public key are retained locally and verified when that key becomes available. They are not displayed and do not produce notifications until verified. This pending buffer is bounded to 100 messages / 64 MiB, with a seven-day expiry.
+
+The following notes record the earlier source review.
+
 # Stamp-system review
 
 Reviewed the user-supplied Reticulum 1.6.0 and LXMF 1.3.0 sources on 2026-11-12. This is a source review, not an end-to-end test against an external stamp-enforcing node.

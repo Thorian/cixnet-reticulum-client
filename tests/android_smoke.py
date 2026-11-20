@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = "net.cixnet.client"
 
 
-def wait_for(check, timeout=90):
+def wait_for(check, timeout=180):
     deadline = time.monotonic() + timeout
     last = None
     while time.monotonic() < deadline:
@@ -169,6 +169,9 @@ def main():
                 "address"
             ]
             transport = available_port()
+            # Forward the isolated test link explicitly; Windows firewall policy
+            # must not decide whether an emulator protocol test can reach its host.
+            adb("reverse", f"tcp:{transport}", f"tcp:{transport}")
             sender_port = available_port()
             log = (directory / "sender.log").open("w", encoding="utf-8")
 
@@ -206,18 +209,24 @@ def main():
                 {
                     **original,
                     "localDiscovery": False,
+                    "fallback": False,
                     "interfaces": [
                         {
                             "name": "Emulator test link",
                             "type": "TCPClientInterface",
-                            "host": "10.0.2.2",
+                            "host": "127.0.0.1",
                             "port": transport,
                             "enabled": True,
                         }
                     ],
                 },
             )
-            wait_for(lambda: mobile.get("network")["peers"] > 0)
+            wait_for(
+                lambda: any(
+                    item["online"] and "Emulator test link" in item["name"]
+                    for item in mobile.get("network")["interfaces"]
+                )
+            )
             sender.post("identities/announce", {})
             mobile.post("identities/announce", {})
             wait_for(
@@ -385,6 +394,8 @@ def main():
                 process.wait(timeout=15)
             if "log" in locals():
                 log.close()
+            if "transport" in locals():
+                adb("reverse", "--remove", f"tcp:{transport}", check=False)
             for port in forwards:
                 adb("forward", "--remove", f"tcp:{port}", check=False)
 
