@@ -192,7 +192,7 @@ On Android, the implementation can request cellular Internet when Wi-Fi supplies
 
 Announces let you discover contacts and services. Open a messaging announce to start a conversation, or a DNS announce to assign its server a suffix.
 
-Identities announce at receiver startup and every **15 minutes** by default. The interval is configurable. Recent announce ages use seconds for the first five minutes. A device may have disconnected since its last announce.
+Identities announce at receiver startup and every **45 minutes** by default. The interval is configurable. Recent announce ages use seconds for the first five minutes. A device may have disconnected since its last announce.
 
 ## Contacts and conversations
 
@@ -201,6 +201,8 @@ Identities announce at receiver startup and every **15 minutes** by default. The
 ![A conversation with incoming and outgoing messages.](images/02-conversation.png)
 
 *Figure 3. The composer contains the attachment menu and send arrow. Demonstration messages illustrate the layout.*
+
+Identity disclosure in Browse is remembered for the whole destination node, separately for each local identity. Pages and form submissions on that node use the saved choice; other nodes remain separate.
 
 ### Search old messages
 

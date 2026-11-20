@@ -71,6 +71,8 @@ def write_config(path, managed, test_listen=None, test_connect=None):
         "share_instance": "No",
         "enable_interface_management": "Yes",
     }
+    # One worker bounds CPU use on client devices without lowering stamp strength.
+    config["stamps"] = {"max_workers": 1, "worker_niceness": 16}
     config["logging"] = {"loglevel": 3}
     config["interfaces"] = dict(managed)
     if test_listen:

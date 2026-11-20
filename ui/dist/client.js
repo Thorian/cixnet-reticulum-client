@@ -13904,7 +13904,7 @@
         page.identify = choice.identify;
         $("browser-identify").setAttribute("aria-pressed", String(page.identify));
         showToast(
-          page.identify ? "Identify enabled for this page" : "Identify disabled for this page"
+          page.identify ? "Identify enabled for this node" : "Identify disabled for this node"
         );
       } catch (error) {
         showToast(error.message);

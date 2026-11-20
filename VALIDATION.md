@@ -1,5 +1,18 @@
 # Validation — 19 November 2026
 
+## Reticulum 1.6.1 migration
+
+- Client runtime pins and native build checks now use Reticulum 1.6.1 and LXMF 1.3.1.
+- All 85 Python tests and 39 frontend tests pass. The isolated network fixtures use valid lower-cost stamps to avoid repeating production-strength stamp work for every throwaway identity; production retains the upstream stamp costs.
+- Node identity choices persist across page paths, query strings, restarts and DNS aliases, while other nodes and local identities remain separate. Legacy page choices are retained on upgrade.
+- Client announces default to 45 minutes; saved custom intervals and server intervals are preserved.
+- Windows startup passed with a fresh data folder. The Android package uses Reticulum’s portable stamp worker in Chaquopy.
+- Gateway, propagation and DNS services are upgraded and retain their identities. Live DNS resolution and offline message upload/retrieval passed. Linux image/chat services restarted on the new versions; 36 tests and both local health probes passed.
+- The published 0.1.0 preview remains unchanged. The next client release is intended as a regular GitHub release.
+
+The notes below describe the original preview checks.
+
+
 ## Automated checks
 
 - 80 Python tests passed, including independent receiver processes over loopback TCP, restart persistence, attachments, offline propagation, browser requests, DNS resolution, phone pairing and access revocation.

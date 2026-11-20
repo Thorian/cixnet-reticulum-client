@@ -30,8 +30,8 @@ def available_port():
         return listener.getsockname()[1]
 
 
-def wait_for(check, timeout=30):
-    """Poll a test condition until it succeeds or the bounded wait expires."""
+def wait_for(check, timeout=120):
+    """Allow cold destination stamps while polling real network operations."""
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         result = check()
@@ -85,7 +85,7 @@ class ClientIntegrationTests(unittest.TestCase):
         command = [
             sys.executable,
             "-u",
-            str(ROOT / "server.py"),
+            str(ROOT / "tests" / "client_fixture.py"),
             "--no-local",
             "--no-fallback",
             "--desktop-parent",

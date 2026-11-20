@@ -11,6 +11,7 @@ import sqlite3
 import threading
 import time
 from collections import OrderedDict
+from urllib.parse import urlsplit
 
 import RNS
 
@@ -73,25 +74,46 @@ class NomadBrowser:
         self.db.execute(
             "CREATE TABLE IF NOT EXISTS page_identity (owner TEXT, url TEXT, identify INTEGER, PRIMARY KEY(owner,url))"
         )
+        self.db.execute(
+            "CREATE TABLE IF NOT EXISTS node_identity (owner TEXT, node TEXT, identify INTEGER, PRIMARY KEY(owner,node))"
+        )
         self.db.commit()
 
     def page_identity(self, owner, url, identify=None, base=None):
-        """Remember identity disclosure for this exact page and local identity."""
+        """Remember disclosure per destination and local identity, across page paths."""
         self.profiles.get(owner)
         url = self._validate_url(url, base)
+        canonical = self.web.canonical(owner, url) if self.web else url
+        if canonical.startswith("nomadpl://"):
+            node = "nomadpl://" + urlsplit(canonical).netloc.lower()
+            legacy_prefix = node + "/%"
+        else:
+            node = canonical.split(":", 1)[0].lower()
+            legacy_prefix = node + ":%"
         if identify is not None and type(identify) is not bool:
             raise ValueError("Identify must be true or false")
         with self.lock:
             if identify is not None:
                 self.db.execute(
-                    "INSERT INTO page_identity VALUES (?, ?, ?) ON CONFLICT(owner,url) DO UPDATE SET identify=excluded.identify",
-                    (owner, url, int(identify)),
+                    "INSERT INTO node_identity VALUES (?, ?, ?) ON CONFLICT(owner,node) DO UPDATE SET identify=excluded.identify",
+                    (owner, node, int(identify)),
                 )
-                self.db.commit()
             row = self.db.execute(
-                "SELECT identify FROM page_identity WHERE owner=? AND url=?",
-                (owner, url),
+                "SELECT identify FROM node_identity WHERE owner=? AND node=?",
+                (owner, node),
             ).fetchone()
+            if row is None:
+                # Keep the most recently chosen page setting when upgrading.
+                row = self.db.execute(
+                    "SELECT identify FROM page_identity WHERE owner=? AND (url=? OR url LIKE ?) ORDER BY rowid DESC LIMIT 1",
+                    (owner, url, legacy_prefix),
+                ).fetchone()
+                if row is not None:
+                    self.db.execute(
+                        "INSERT INTO node_identity VALUES (?, ?, ?)",
+                        (owner, node, row[0]),
+                    )
+            self.db.commit()
         return {"url": url, "identify": bool(row[0]) if row else False}
 
     def _validate_url(self, value, base=None):
@@ -135,7 +157,7 @@ class NomadBrowser:
             raise ValueError("Remove must be true or false")
         url = self._validate_url(url)
         if not isinstance(name, str) or not 1 <= len(name.strip()) <= 100:
-            raise ValueError("Bookmark name must contain 1–100 characters")
+            raise ValueError("Bookmark name must contain 1â€“100 characters")
         with self.lock:
             if remove:
                 self.db.execute(

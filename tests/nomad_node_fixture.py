@@ -37,6 +37,10 @@ def main():
     (args.data / "config").write_text(
         f"[reticulum]\nshare_instance = No\nenable_transport = Yes\n[logging]\nloglevel = 2\n[interfaces]\n[[Test node]]\ntype = TCPServerInterface\nenabled = Yes\nlisten_ip = 127.0.0.1\nlisten_port = {args.port}\n"
     )
+    RNS.Transport.DESTINATION_VALUE = 8
+    RNS.Transport.DESTINATION_COST = 8
+    RNS.Transport.PR_VALUE = 8
+    RNS.Transport.PR_COST = 8
     RNS.Reticulum(configdir=str(args.data))
     relay = None
     if args.with_relay:

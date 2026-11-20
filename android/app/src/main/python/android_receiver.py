@@ -56,6 +56,11 @@ class AndroidInternet:
 
 
 def run(service, directory, ui):
+    import RNS.Stamps
+
+    # Chaquopy cannot fork Python workers. Use Reticulum's own portable worker;
+    # the stamp format, difficulty and verification remain unchanged.
+    RNS.Stamps.job_android = RNS.Stamps.job_simple
     from server import main
 
     _stop.clear()

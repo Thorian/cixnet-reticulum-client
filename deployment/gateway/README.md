@@ -1,6 +1,6 @@
 # ciXnet gateway deployment
 
-The live gateway uses Debian 13, Reticulum 1.6.0, LXMF 1.3.0 and retdns 0.2.1. Reticulum and the application services run as the unprivileged `cixnet` account, with state under `/var/lib/cixnet`.
+The live gateway uses Debian 13, Reticulum 1.6.1, LXMF 1.3.1 and retdns 0.2.1. Reticulum and the application services run as the unprivileged `cixnet` account, with state under `/var/lib/cixnet`.
 
 ## Services
 

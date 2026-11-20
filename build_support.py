@@ -3,8 +3,8 @@
 from importlib.metadata import PackageNotFoundError, version
 
 RUNTIME_VERSIONS = {
-    "rns": "1.6.0",
-    "lxmf": "1.3.0",
+    "rns": "1.6.1",
+    "lxmf": "1.3.1",
     "retdns": "0.2.1",
     "nomadpl": "0.3.0",
 }

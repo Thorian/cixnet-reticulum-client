@@ -36,7 +36,7 @@ class BrowserTests(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(ValueError):
                 resolve_url(value)
 
-    def test_identity_choice_is_per_page_and_survives_restart(self):
+    def test_identity_choice_is_per_node_and_survives_restart(self):
         with tempfile.TemporaryDirectory() as directory:
             profiles = ProfileStore(directory)
             first, second = profiles.create("First"), profiles.create("Second")
@@ -48,15 +48,56 @@ class BrowserTests(unittest.TestCase):
                     "identify"
                 ]
             )
-            self.assertFalse(
+            self.assertTrue(
                 browser.page_identity(first["id"], NODE + ":/page/other.mu")["identify"]
             )
             self.assertFalse(browser.page_identity(second["id"], page)["identify"])
+            self.assertFalse(browser.page_identity(first["id"], "b" * 32)["identify"])
             browser.db.close()
             browser = NomadBrowser(profiles)
             self.assertTrue(browser.page_identity(first["id"], page)["identify"])
             browser.page_identity(first["id"], page, False)
             self.assertFalse(browser.page_identity(first["id"], page)["identify"])
+            browser.db.close()
+
+    def test_legacy_page_choice_applies_to_the_node(self):
+        with tempfile.TemporaryDirectory() as directory:
+            profiles = ProfileStore(directory)
+            owner = profiles.create("Legacy")["id"]
+            browser = NomadBrowser(profiles)
+            browser.db.execute(
+                "INSERT INTO page_identity VALUES (?, ?, ?)",
+                (owner, NODE + ":/page/start.mu", 1),
+            )
+            browser.db.commit()
+            self.assertTrue(
+                browser.page_identity(owner, NODE + ":/page/next.mu")["identify"]
+            )
+            browser.db.close()
+
+    def test_html_node_choice_covers_paths_queries_and_dns_aliases(self):
+        from types import SimpleNamespace
+
+        with tempfile.TemporaryDirectory() as directory:
+            profiles = ProfileStore(directory)
+            owner = profiles.create("HTML")["id"]
+            web = SimpleNamespace(
+                canonical=lambda owner, url: url.replace("home.cix", NODE)
+            )
+            browser = NomadBrowser(profiles, web)
+            browser.page_identity(owner, "nomadpl://home.cix/start", True)
+            self.assertTrue(
+                browser.page_identity(owner, "nomadpl://" + NODE + "/next?x=2")[
+                    "identify"
+                ]
+            )
+            self.assertFalse(
+                browser.page_identity(owner, "nomadpl://" + "b" * 32 + "/")["identify"]
+            )
+            browser.page_identity(owner, "nomadpl://" + NODE + "/next", False)
+            self.assertFalse(
+                browser.page_identity(owner, "nomadpl://home.cix/start")["identify"]
+            )
             browser.db.close()
 
     def test_bookmarks_survive_restart_and_remain_per_identity(self):

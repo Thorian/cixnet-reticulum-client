@@ -51,3 +51,5 @@ The background receiver uses a separate, low-priority service notification with 
 Incoming messages now request the system-default vibration with the VIBRATE permission. Android retains settings for channels already created: on an existing installation, long-press a real message notification and open Incoming messages settings to enable vibration if desired. Silent mode, Do Not Disturb and user channel settings still apply. The new receiver-status-v2 channel disables badges for service status on upgraded installations too.
 
 Station location: Use my location requests foreground coarse/fine location only on demand through the trusted local WebView origin. Remote NomadPL origins are refused. A one-fix location watch stops on completion, dialog close or hiding the app; no background location permission is requested. Manual coordinate entry remains available.
+
+Reticulum 1.6.1 generates network stamps by default. The embedded Python runtime uses Reticulum’s portable single-process stamp worker because Chaquopy cannot fork workers. Stamps are cached by Reticulum; first use of a new identity can consume more CPU than later starts.
