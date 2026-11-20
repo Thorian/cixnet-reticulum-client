@@ -132,8 +132,14 @@ def main():
         name="NomadPL demo",
     )
     registry = Registry(args.data / "records.sqlite")
-    registry.register("home", html.destination.hash.hex(), replace=True)
-    registry.register("native", sites[0].destination.hash.hex(), replace=True)
+    # These sites share this process, so their own broadcasts are not received
+    # by the DNS collector. Register their genuine signed announces directly.
+    for name, site in (("home", html), ("native", sites[0])):
+        packet = site.destination.announce(app_data=site.name.encode(), send=False)
+        packet.pack()
+        registry.register(
+            name, site.destination.hash.hex(), announce=packet.raw, replace=True
+        )
     dns = Server(
         load_identity(args.data / "dns.identity"), registry, name="Browser test DNS"
     )

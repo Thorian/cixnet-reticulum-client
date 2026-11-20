@@ -2,11 +2,11 @@
 
 A free Reticulum client for Windows and Android, with messaging, network browsing and support for connections that come and go.
 
-## Download 0.1.1
+## Download 0.1.2
 
-- **[Download for Android — APK](https://github.com/Thorian/cixnet-reticulum-client/releases/download/v0.1.1/ciXnet-debug.apk)**
-- **[Download for Windows — ZIP](https://github.com/Thorian/cixnet-reticulum-client/releases/download/v0.1.1/ciXnet-windows.zip)**
-- [Release notes and checksums](https://github.com/Thorian/cixnet-reticulum-client/releases/tag/v0.1.1)
+- **[Download for Android — APK](https://github.com/Thorian/cixnet-reticulum-client/releases/download/v0.1.2/ciXnet-debug.apk)**
+- **[Download for Windows — ZIP](https://github.com/Thorian/cixnet-reticulum-client/releases/download/v0.1.2/ciXnet-windows.zip)**
+- [Release notes and checksums](https://github.com/Thorian/cixnet-reticulum-client/releases/tag/v0.1.2)
 
 Android: allow installation from your browser. Existing previews can update with this APK. Windows: extract the whole ZIP and run `ciXnet.exe`; Microsoft Edge WebView2 is required. Linux: follow the source instructions below.
 
@@ -94,6 +94,8 @@ Tests create temporary identities and loopback connections. They do not need you
 The client is a development preview. Android fingerprint unlocking, automatic radio scanning/tuning and automatic start after reboot are not implemented. Long idle periods and battery use still need more phone testing.
 
 The public gateway is available at `gw.cixnet.org:4242`. Fresh installs include its propagation mailbox and the ciXnet DNS authority under `.cix`. You can change or remove these defaults. The station-list HTTPS and Reticulum endpoints also need deployment. The client does not scrape RMAP; our server-side compiler is prepared for a weekly update, pending data redistribution agreement.
+
+Custom DNS authorities must support retdns 0.3 signed-announce replies. The default `.cix` authority already supports them.
 
 Identity keys and message storage are not encrypted by ciXnet. Windows Hello locks access through the interface, not the files. An exported `.identity` contains a private key and does not include conversation history. Keep the local client API on loopback; use phone pairing for approved remote access.
 

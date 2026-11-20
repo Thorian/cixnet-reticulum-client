@@ -57,6 +57,9 @@ class AndroidInternet:
 
 def run(service, directory, ui):
     import RNS.Stamps
+    import android_crypto
+
+    android_crypto.install()
 
     # Chaquopy cannot fork Python workers. Use Reticulum's own portable worker;
     # the stamp format, difficulty and verification remain unchanged.
