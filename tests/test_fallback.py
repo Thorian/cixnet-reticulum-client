@@ -38,6 +38,28 @@ class GatewayTests(unittest.TestCase):
         thread.assert_called_once_with(target=reader, daemon=True)
         thread.return_value.start.assert_called_once_with()
         connect.assert_not_called()
+        self.assertEqual(interface.ic_burst_freq_new, 50)
+        self.assertEqual(interface.ic_burst_freq, 50)
+        self.assertEqual(interface.ic_max_held_announces, 256)
+
+    def test_gateway_accepts_normal_public_traffic_but_still_limits_floods(self):
+        interface = object.__new__(ConnectedTCPInterface)
+        interface.ingress_control = True
+        interface.ic_new_time = 7200
+        interface.ic_burst_active = False
+        interface.ic_burst_penalty = 15
+        with (
+            patch("fallback.threading.Thread"),
+            patch.object(interface, "age", return_value=1),
+            patch.object(
+                interface, "incoming_announce_frequency", return_value=8
+            ) as rate,
+        ):
+            interface.final_init()
+            self.assertFalse(interface.should_ingress_limit())
+            rate.return_value = 100
+            self.assertTrue(interface.should_ingress_limit())
+            self.assertTrue(interface.ic_burst_active)
 
     def test_default_migration_persistence_and_validation(self):
         with tempfile.TemporaryDirectory() as directory:

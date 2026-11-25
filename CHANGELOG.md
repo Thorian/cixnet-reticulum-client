@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3 — 25 November 2026
+
+- Retain up to 10,000 discovered destinations instead of 500; repeated announces refresh an existing entry.
+- Tune announce burst control for the automatic Internet gateway so normal public-network traffic can discover new pages. Radio settings and signature checks are unchanged.
+- Accept `nomadnet://` links with a node hash and optional page path.
+
 ## 0.1.2 — 20 November 2026
 
 - Update retdns to 0.3.0 and require signed destination announces in DNS replies.

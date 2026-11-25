@@ -18,6 +18,14 @@ class BrowserTests(unittest.TestCase):
     def test_native_addresses_and_relative_paths(self):
         """Resolve native page and file links while rejecting unsupported URL shapes."""
         self.assertEqual(resolve_url(NODE), NODE + ":/page/index.mu")
+        self.assertEqual(resolve_url("nomadnet://" + NODE), NODE + ":/page/index.mu")
+        self.assertEqual(
+            resolve_url("nomadnet://" + NODE + "/"), NODE + ":/page/index.mu"
+        )
+        self.assertEqual(
+            resolve_url("nomadnet://" + NODE + "/page/start.mu#top"),
+            NODE + ":/page/start.mu",
+        )
         self.assertEqual(
             resolve_url("nnn@" + NODE + ":/page/start.mu"), NODE + ":/page/start.mu"
         )
@@ -32,6 +40,9 @@ class BrowserTests(unittest.TestCase):
             NODE + ":/identity",
             NODE + ":/page/../../secret.mu",
             NODE + ":/page/test\n.mu",
+            "nomadnet://" + NODE + "/page/start.mu?query=1",
+            "nomadnet://" + NODE + "/identity",
+            "nomadnet://user@" + NODE,
         ):
             with self.subTest(value=value), self.assertRaises(ValueError):
                 resolve_url(value)

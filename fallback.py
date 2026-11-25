@@ -19,6 +19,12 @@ class ConnectedTCPInterface(TCPClientInterface):
     def final_init(self):
         # Reticulum calls this during registration. The normal TCP initializer
         # opens another socket; this interface must retain the supplied one.
+        # A public Internet uplink routinely exceeds the default new-interface
+        # limit of three announces/second. Keep ingress control active, with a
+        # bounded queue and a rate suited to this connection rather than radio.
+        self.ic_burst_freq_new = 50
+        self.ic_burst_freq = 50
+        self.ic_max_held_announces = 256
         threading.Thread(target=self.read_loop, daemon=True).start()
 
 
