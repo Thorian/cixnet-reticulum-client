@@ -4,6 +4,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parent))
 import RNS
@@ -14,6 +15,28 @@ from network import Network
 
 
 class DNSAnnounceTests(unittest.TestCase):
+    def test_discovery_retains_more_than_500_destinations(self):
+        with tempfile.TemporaryDirectory() as directory:
+            network = Network(directory)
+            identity = RNS.Identity()
+            for number in range(600):
+                network.received_announce(number.to_bytes(16, "big"), identity, b"Node")
+            self.assertEqual(600, len(network.status()["announces"]))
+
+    def test_retention_evicts_least_recently_heard_destination(self):
+        with tempfile.TemporaryDirectory() as directory:
+            network = Network(directory)
+            identity = RNS.Identity()
+            addresses = [number.to_bytes(16, "big") for number in range(4)]
+            with patch("network.MAX_DISCOVERED_DESTINATIONS", 3):
+                for address in addresses[:3]:
+                    network.received_announce(address, identity, b"Node")
+                network.received_announce(addresses[0], identity, b"Updated")
+                network.received_announce(addresses[3], identity, b"New")
+            self.assertEqual(3, len(network.announces))
+            self.assertIn(addresses[0].hex(), network.announces)
+            self.assertNotIn(addresses[1].hex(), network.announces)
+
     def test_dns_namespace_name_and_destination_are_retained(self):
         with tempfile.TemporaryDirectory() as directory:
             network = Network(directory)

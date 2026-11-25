@@ -9,6 +9,8 @@ import RNS
 
 from interface_config import definitions, write_config
 
+MAX_DISCOVERED_DESTINATIONS = 10_000
+
 
 def readable_announce(data):
     """Never interpret binary metadata as lossy UTF-8 display text."""
@@ -250,6 +252,8 @@ class Network:
                     return
             if is_relay:
                 name = "LXMF relay"
+            # Refresh insertion order so retention follows the last time heard.
+            self.announces.pop(address, None)
             self.announces[address] = {
                 "address": address,
                 "identity": announced_identity.hash.hex(),
@@ -273,11 +277,8 @@ class Network:
                 "data": decoded,
                 "dns": dns_info,
             }
-            if len(self.announces) > 500:
-                oldest = min(
-                    self.announces, key=lambda key: self.announces[key]["received"]
-                )
-                del self.announces[oldest]
+            if len(self.announces) > MAX_DISCOVERED_DESTINATIONS:
+                del self.announces[next(iter(self.announces))]
 
         callback = getattr(self, "on_destination", None)
         if callback:

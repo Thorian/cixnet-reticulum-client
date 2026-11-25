@@ -11,4 +11,4 @@ Signing keys, profiles, runtime databases, logs, generated Android sources, buil
 
 The source export does not create a GitHub repository, push commits or publish binaries. Choose the repository name and visibility before that step. No release upload is automated.
 
-Publish 0.1.2 as a regular GitHub release. Keep earlier releases unchanged.
+Publish 0.1.3 as a regular GitHub release. Keep earlier releases unchanged.

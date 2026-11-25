@@ -25,6 +25,12 @@ def resolve_url(value, base=None):
     if not isinstance(value, str) or not 1 <= len(value) <= 2048:
         raise ValueError("Enter a NomadNet node address and page path")
     value = value.strip().split("#", 1)[0]
+    if value.startswith("nomadnet://"):
+        match = re.fullmatch(r"nomadnet://([0-9a-fA-F]{32})(/[^?]*)?", value)
+        if not match:
+            raise ValueError("Invalid NomadNet URL")
+        node, path = match.groups()
+        value = node + ":" + (path if path and path != "/" else "/page/index.mu")
     for prefix in ("nnn@", "nomadnetwork.node@"):
         if value.startswith(prefix):
             value = value[len(prefix) :]

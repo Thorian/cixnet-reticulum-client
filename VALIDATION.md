@@ -1,4 +1,12 @@
-# Validation — 20 November 2026
+# Validation — 25 November 2026
+
+## 0.1.3 release checks
+
+- Discovery retains 10,000 destinations, updates existing entries, and evicts the least recently heard entry at capacity.
+- The automatic Internet gateway accepts normal public-network announce traffic while retaining burst control. Tests cover ordinary traffic and flood limiting. Live discovery recovered both NomadNet and NomadPL sites after this change.
+- Native browsing accepts `nomadnet://` addresses with an optional page path, while rejecting credentials, query strings and unsupported paths.
+- Android uses the existing signing certificate and application ID, with version code 16. The download filename remains `ciXnet-debug.apk`.
+- A fresh Android emulator run was unavailable because the configured system image is missing. Previous Android device checks are listed below; they do not establish testing of this APK.
 
 ## 0.1.2 release checks
 
