@@ -15,6 +15,18 @@ The local API requires a random app-private key on Android. There is no VPN or
 cloud push dependency. The external browser bridge uses loopback `.localhost`
 addresses. The app uses Chaquopy 17.2 and Python 3.12; licenses are in About.
 
+## Saving files and photos
+
+Downloads are saved in **Downloads/ciXnet**, visible in Android's Files app.
+Long-press a displayed photo and choose **Save photo** to keep a copy there.
+Saving does not change the original message or image. Android 8 and 9 ask for
+storage permission the first time; allow it and retry the save.
+
+NomadPL downloads show an indeterminate bar while the remote response is being
+prepared, then byte progress while transferring and saving. The client accepts
+NomadPL responses up to 64 MB and waits up to ten minutes for a response.
+Incomplete saves are not published as completed downloads.
+
 ## Phone checks
 
 - Exchange messages in both directions; verify notifications with the screen off.

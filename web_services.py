@@ -1,5 +1,7 @@
 """Local DNS authority choices and isolated NomadPL browser origins."""
 
+import base64
+import hashlib
 import re
 import secrets
 import sqlite3
@@ -9,12 +11,34 @@ from urllib.parse import urlsplit, urlunsplit
 
 from nomadpl import Client
 from nomadpl.gateway import Gateway
+from nomadpl.http import Limits
 from nomadpl.urls import URL
 from retdns import Cache, Resolver
 from retdns.discovery import Discovery
 from retdns.models import normalize_address, normalize_name
 
 DEFAULT_DNS_SERVER = "48a1ab73497b08453287f12630883de6"
+
+
+def bridge_script_policy(policy, source):
+    """Allow the exact bundled helper without allowing other scripts or origins."""
+    directives = [part.strip().split() for part in policy.split(";") if part.strip()]
+    values = {}
+    for directive in directives:
+        values.setdefault(directive[0].lower(), directive[1:])
+    if not any(
+        name in values for name in ("default-src", "script-src", "script-src-elem")
+    ):
+        return policy
+    for name in ("script-src", "script-src-elem"):
+        sources = values.get(
+            name, values.get("script-src", values.get("default-src", ["*"]))
+        )
+        allowed = [source for source in sources if source != "'none'"]
+        allowed.append(source)
+        directives = [item for item in directives if item[0].lower() != name]
+        directives.append([name, *allowed])
+    return "; ".join(" ".join(item) for item in directives)
 
 
 class SourceRecordingClient:
@@ -26,6 +50,7 @@ class SourceRecordingClient:
         self.sources = {}
         self.source_versions = {}
         self.bridge_markup = None
+        self.bridge_source = None
         self.closed = threading.Event()
         self.lock = threading.Lock()
 
@@ -95,7 +120,13 @@ class SourceRecordingClient:
                     response,
                     body=body,
                     headers=[
-                        (k, v)
+                        (
+                            k,
+                            bridge_script_policy(v, self.bridge_source)
+                            if k.lower() == "content-security-policy"
+                            and self.bridge_source
+                            else v,
+                        )
                         for k, v in response.headers
                         if k.lower() != "content-length"
                     ],
@@ -365,10 +396,19 @@ class WebServices:
                 )
                 port = saved[0] if saved else 0
                 client = SourceRecordingClient(
-                    Client(url.destination, identity=identity)
+                    Client(
+                        url.destination,
+                        identity=identity,
+                        limits=Limits(response_body=64 * 1024 * 1024, timeout=600),
+                    )
                 )
                 try:
-                    gateway = Gateway(("127.0.0.1", port), client, canonical_host=host)
+                    gateway = Gateway(
+                        ("127.0.0.1", port),
+                        client,
+                        canonical_host=host,
+                        limits=Limits(response_body=64 * 1024 * 1024, timeout=600),
+                    )
                 except OSError as error:
                     import errno
 
@@ -396,11 +436,15 @@ class WebServices:
 
                     gateway.RequestHandlerClass = NavigationHandler
                     gateway.bridge_script = self.ui_root / "nomadpl-bridge.js"
+                    digest = base64.b64encode(
+                        hashlib.sha256(gateway.bridge_script.read_bytes()).digest()
+                    ).decode("ascii")
                     gateway.bridge_path = (
                         "/.cixnet-navigation-" + secrets.token_hex(16) + ".js"
                     )
+                    gateway.client.bridge_source = f"http://{host}:{gateway.server_address[1]}{gateway.bridge_path}"
                     gateway.client.bridge_markup = (
-                        f'<script src="{gateway.bridge_path}" data-parent="{self.parent_origin}" data-channel="{gateway.bridge_path}" data-source="__CIXNET_SOURCE__" defer></script>'
+                        f'<script src="{gateway.bridge_path}" integrity="sha256-{digest}" data-parent="{self.parent_origin}" data-channel="{gateway.bridge_path}" data-source="__CIXNET_SOURCE__" defer></script>'
                     ).encode("ascii")
                 threading.Thread(target=gateway.serve_forever, daemon=True).start()
                 self.gateways[key] = (gateway, host)

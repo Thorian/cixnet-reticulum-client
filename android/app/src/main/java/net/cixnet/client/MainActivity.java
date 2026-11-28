@@ -24,6 +24,7 @@ import org.json.JSONObject;
 public final class MainActivity extends Activity {
   private final Handler handler = new Handler(Looper.getMainLooper());
   private WebView browser;
+  private DownloadStore downloads;
   private FrameLayout content;
   private String origin;
   private String accessKey;
@@ -130,6 +131,8 @@ public final class MainActivity extends Activity {
   }
 
   private void openClient() {
+    if (downloads != null) downloads.close();
+    downloads = new DownloadStore(this);
     browser = new WebView(this);
     WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG);
     browser.getSettings().setJavaScriptEnabled(true);
@@ -138,8 +141,16 @@ public final class MainActivity extends Activity {
     browser.getSettings().setAllowFileAccess(false);
     browser.getSettings().setAllowContentAccess(true);
     browser.getSettings().setSupportMultipleWindows(true);
+    browser.setDownloadListener(
+        (url, agent, disposition, mime, size) ->
+            downloads.download(url, URLUtil.guessFileName(url, disposition, mime), mime));
     browser.setWebViewClient(
         new WebViewClient() {
+          @Override
+          public void onPageFinished(WebView view, String url) {
+            if (isOwnOrigin(Uri.parse(url))) downloads.attach(view, origin);
+          }
+
           @Override
           public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             if (!request.isForMainFrame()) return false;
@@ -385,6 +396,7 @@ public final class MainActivity extends Activity {
 
   @Override
   protected void onDestroy() {
+    if (downloads != null) downloads.close();
     destroyed = true;
     finishLocationRequest(false);
     handler.removeCallbacksAndMessages(null);

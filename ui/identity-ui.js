@@ -1,4 +1,5 @@
 /** Profile editing and explicit key backup; keys are not retained in UI state. */
+import { saveBlob } from "./downloads.js";
 import {
   $,
   model,
@@ -128,14 +129,7 @@ export function initIdentities({ onSelect }) {
       });
       if (!response.ok) throw Error("Identity export failed");
       const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "cixnet-" + editingIdentity.id + ".identity";
-      document.body.append(link);
-      link.click();
-      link.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      await saveBlob(blob, "cixnet-" + editingIdentity.id + ".identity");
       showToast("Private identity file exported");
     } catch (error) {
       $("manage-error").textContent = error.message;

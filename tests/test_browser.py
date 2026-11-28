@@ -2,6 +2,7 @@
 
 import sys
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 
@@ -15,6 +16,21 @@ NODE = "a" * 32
 
 
 class BrowserTests(unittest.TestCase):
+    def test_cancellation_releases_page_and_download_buffers(self):
+        job = dict(
+            stop=threading.Event(),
+            phase="done",
+            link=None,
+            source="page",
+            frame="html",
+            file_data=b"image",
+        )
+        NomadBrowser._cancel(None, job)
+        self.assertTrue(job["stop"].is_set())
+        self.assertEqual(job["phase"], "cancelled")
+        for field in ("source", "frame", "file_data", "link"):
+            self.assertIsNone(job[field])
+
     def test_native_addresses_and_relative_paths(self):
         """Resolve native page and file links while rejecting unsupported URL shapes."""
         self.assertEqual(resolve_url(NODE), NODE + ":/page/index.mu")

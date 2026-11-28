@@ -309,6 +309,8 @@ class NomadBrowser:
         job["phase"] = "cancelled"
         if job["link"]:
             job["link"].teardown()
+        # The caller has left the page or copied the download into its own cache.
+        job.update(source=None, frame=None, file_data=None, link=None)
 
     def cancel(self, owner, ident):
         """Authorize a cancellation request before stopping the matching job."""

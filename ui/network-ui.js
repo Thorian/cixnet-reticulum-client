@@ -5,6 +5,9 @@ import { connectionStatus, connectionCounts } from "./connection-status.js";
 
 let selectedAnnounce = null;
 let actions;
+let announcePage = 0;
+let announceQuery = "";
+const ANNOUNCES_PER_PAGE = 100;
 
 /** Destination actions share the main client's conversation and DNS navigation. */
 export function initAnnounces(callbacks) {
@@ -51,18 +54,66 @@ export function renderNetworkStatus() {
 /** Render announcements matching the search and retain the current selection. */
 export function renderAnnounces() {
   const query = $("search").value.trim().toLowerCase();
+  if (query !== announceQuery) {
+    announceQuery = query;
+    announcePage = 0;
+  }
   const entries = model.network.announces.filter((entry) =>
     `${entry.address} ${entry.display_name || ""} ${entry.kind} ${entry.data}`
       .toLowerCase()
       .includes(query),
   );
-  $("list-content").replaceChildren();
+  const pages = Math.max(1, Math.ceil(entries.length / ANNOUNCES_PER_PAGE));
+  announcePage = Math.min(announcePage, pages - 1);
+  const visible = entries.slice(
+    announcePage * ANNOUNCES_PER_PAGE,
+    (announcePage + 1) * ANNOUNCES_PER_PAGE,
+  );
+  const list = $("list-content");
+  // Keep polling from rebuilding thousands of rows, or replacing unchanged ones.
+  const signature = JSON.stringify([
+    query,
+    announcePage,
+    entries.length,
+    selectedAnnounce,
+    model.network.phase,
+    visible,
+  ]);
+  if (
+    list.dataset.announcePage === signature &&
+    list.querySelector(".announce-page")
+  )
+    return;
+  list.dataset.announcePage = signature;
+  list.replaceChildren();
+  const navigation = document.createElement("div");
+  navigation.className = "announce-page";
+  navigation.setAttribute("aria-label", "Announce pages");
+  for (const [label, direction] of [
+    ["Previous", -1],
+    ["Next", 1],
+  ]) {
+    const button = document.createElement("button");
+    button.textContent = label;
+    button.disabled =
+      direction < 0 ? announcePage === 0 : announcePage === pages - 1;
+    button.onclick = () => {
+      announcePage += direction;
+      renderAnnounces();
+      list.scrollTop = 0;
+    };
+    navigation.append(button);
+  }
+  const count = document.createElement("span");
+  count.textContent = `${announcePage + 1} / ${pages} · ${entries.length}`;
+  navigation.insertBefore(count, navigation.lastChild);
+  list.append(navigation);
   if (!entries.length) {
     $("list-content").innerHTML =
       `<div class="list-empty"><strong>${query ? "No matches" : "No announces received"}</strong>
       ${model.network.phase === "running" ? "Listening for live Reticulum announces." : "The network is not running."}</div>`;
   }
-  for (const entry of entries) {
+  for (const entry of visible) {
     const button = document.createElement("button");
     button.className = "announce-item compact-announce";
     const kind =

@@ -10,6 +10,7 @@ import RNS
 from interface_config import definitions, write_config
 
 MAX_DISCOVERED_DESTINATIONS = 10_000
+OTHER_ANNOUNCE_RETENTION = 5 * 60
 
 
 def readable_announce(data):
@@ -151,6 +152,7 @@ class Network:
         """Read counters off the UI thread; observations never imply a server role."""
         try:
             while True:
+                self._expire_other_announces()
                 stats = self.core.get_interface_stats() or {}
                 interfaces = []
                 for item in stats.get("interfaces", []):
@@ -284,8 +286,21 @@ class Network:
         if callback:
             callback(address)
 
+    def _expire_other_announces(self):
+        """Discard unrecognised services five minutes after their last announce."""
+        cutoff = time.time() - OTHER_ANNOUNCE_RETENTION
+        with self.lock:
+            expired = [
+                address
+                for address, entry in self.announces.items()
+                if entry["kind"] == "unknown" and entry["received"] < cutoff
+            ]
+            for address in expired:
+                del self.announces[address]
+
     def status(self):
         """Build the client-visible snapshot of connectivity, peers and announces."""
+        self._expire_other_announces()
         with self.lock:
             return {
                 "phase": self.phase,

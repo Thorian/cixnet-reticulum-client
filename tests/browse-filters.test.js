@@ -5,7 +5,20 @@ import {
   loadBrowseKinds,
   saveBrowseKinds,
   discoveredNodes,
+  bookmarkName,
 } from "../ui/browse-filters.js";
+
+test("address-only bookmarks use announce names without replacing custom labels", () => {
+  const address = "a".repeat(32);
+  const url = `nomadpl://${address}/`;
+  const announces = [{ address, display_name: "ciXnet - Search" }];
+  assert.equal(bookmarkName({ url, name: url }, announces), "ciXnet - Search");
+  assert.equal(
+    bookmarkName({ url, name: "My search" }, announces),
+    "My search",
+  );
+  assert.equal(bookmarkName({ url }, []), url);
+});
 
 test("browse choices survive reload, including hiding every type", () => {
   let saved = null;

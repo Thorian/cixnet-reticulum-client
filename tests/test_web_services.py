@@ -170,6 +170,22 @@ class SourceRecordingTests(unittest.TestCase):
 
 
 class NavigationInjectionTests(unittest.TestCase):
+    def test_strict_policy_allows_only_the_local_helper_and_keeps_other_rules(self):
+        from web_services import bridge_script_policy
+
+        source = "http://site.localhost:1234/.cixnet-navigation-secret.js"
+        policy = bridge_script_policy(
+            "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'",
+            source,
+        )
+        self.assertIn("script-src " + source, policy)
+        self.assertIn("script-src-elem " + source, policy)
+        self.assertIn("default-src 'none'", policy)
+        self.assertIn("form-action 'self'", policy)
+        self.assertNotIn("script-src 'self'", policy)
+        original = "script-src 'unsafe-inline' https://existing.example"
+        self.assertIn(original, bridge_script_policy(original, source))
+
     def test_bridge_changes_display_response_but_not_saved_source(self):
         """
         Inject browser navigation support without changing the retained original HTML.

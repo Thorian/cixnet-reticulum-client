@@ -15,6 +15,26 @@ from network import Network
 
 
 class DNSAnnounceTests(unittest.TestCase):
+    def test_other_announces_expire_after_five_minutes_since_last_heard(self):
+        with tempfile.TemporaryDirectory() as directory:
+            network = Network(directory)
+            identity = RNS.Identity()
+            unknown = bytes.fromhex("01" * 16)
+            node = RNS.Destination.hash_from_name_and_identity(
+                "nomadnetwork.node", identity
+            )
+            with patch("network.time.time", return_value=1000):
+                network.received_announce(unknown, identity, b"Other")
+                network.received_announce(node, identity, b"Site")
+            with patch("network.time.time", return_value=1300):
+                self.assertEqual(2, len(network.status()["announces"]))
+                network.received_announce(unknown, identity, b"Other refreshed")
+            with patch("network.time.time", return_value=1600):
+                self.assertEqual(2, len(network.status()["announces"]))
+            with patch("network.time.time", return_value=1601):
+                entries = network.status()["announces"]
+            self.assertEqual([node.hex()], [entry["address"] for entry in entries])
+
     def test_discovery_retains_more_than_500_destinations(self):
         with tempfile.TemporaryDirectory() as directory:
             network = Network(directory)
