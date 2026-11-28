@@ -36,3 +36,22 @@ sudo -u cixnet /opt/cixnet/venv/bin/retdns records --database /var/lib/cixnet/re
 ```
 
 Record changes take effect without restarting retdns. Remote clients cannot register or alter names. After a manual Reticulum restart, check and restart `cixnet-retdns.service` alongside `cixnet-lxmf.service` if needed.
+
+## Gateway announcement policy (27 November 2026)
+
+The live gateway also connects to Erix Bergamo (`reticulumbg.duckdns.org:4242`)
+and GossLake (`66.165.12.51:4242`), the crawler's two leading peers by successful
+fetches at deployment. Both use `TCPClientInterface` in full mode.
+
+`rns_gateway.py` runs Reticulum with an announce-only 25-hop ceiling. It rejects
+announces before the normal packet filter and before route learning, caching or
+forwarding. The receiving hop counts toward the limit: 25 is accepted, 26 is
+rejected. Other packet types retain Reticulum's normal limits. Existing routes
+above 25 hops are expired on startup.
+
+The deployed launcher is `/opt/cixnet/gateway/rns_gateway.py`; the systemd override
+is `/etc/systemd/system/cixnet-reticulum.service.d/announce-limit.conf`.
+The upstream package remains unmodified. When upgrading Reticulum, check that
+`preprocess_inbound` still calls `packet_filter` before incrementing `packet.hops`.
+To return to the standard launcher, remove that override, reload systemd, and
+restart `cixnet-reticulum.service`. This does not remove the two new peers.

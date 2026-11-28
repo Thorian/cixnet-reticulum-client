@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.4 — 28 November 2026
+
+- Save Android downloads in Downloads/ciXnet, with progress reporting and long-press photo saving.
+- Complete larger NomadPL downloads and support download links created by pages.
+- Keep Browse pages and unfinished forms open when switching tabs.
+- Fix bookmarks and page navigation under restrictive script policies.
+- Remove unknown announces after five minutes, paginate discovery lists and limit image caches to reduce memory use.
+
 ## 0.1.3 — 25 November 2026
 
 - Retain up to 10,000 discovered destinations instead of 500; repeated announces refresh an existing entry.

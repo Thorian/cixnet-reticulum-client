@@ -2,6 +2,7 @@
  * Feature modules export functions instead of replacing each other's functions.
  */
 import { $, model, api, showDialog, showToast } from "./core.js";
+import { initDownloads } from "./downloads.js";
 import { loadIcons } from "./icons.js";
 import { initPairing } from "./pairing-ui.js";
 import { initAbout } from "./about-ui.js";
@@ -27,7 +28,7 @@ import {
   renderBrowse,
   renderDNS,
   renderBrowseNodes,
-  leaveBrowser,
+  resetBrowser,
   openBrowserURL,
 } from "./browser-ui.js";
 import {
@@ -46,10 +47,11 @@ import {
 
 let lastPollError = "";
 
-/** Switch views while clearing navigation state that belongs to the old tab. */
+/** Switch views without removing the browser's live document from the DOM. */
 function showTab(tab) {
-  leaveBrowser();
   model.tab = tab;
+  $("detail").classList.toggle("hidden", tab === "browse");
+  $("browse-detail").classList.toggle("hidden", tab !== "browse");
   model.conversation = null;
   $("search").value = "";
   document
@@ -159,6 +161,7 @@ async function poll() {
 
 /** Initialize feature modules and restore the receiver's current client state. */
 async function start() {
+  initDownloads();
   initAbout();
   initProtection();
   window.addEventListener("hashchange", async () => {
@@ -245,7 +248,7 @@ async function start() {
     document
       .querySelectorAll("dialog[open]")
       .forEach((dialog) => dialog.close());
-    leaveBrowser();
+    resetBrowser();
     clearMessageDraft();
     model.active = null;
     model.conversation = null;

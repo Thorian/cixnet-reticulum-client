@@ -11902,6 +11902,138 @@
     });
   }
 
+  // ui/downloads.js
+  var nativePort;
+  var activeDialog;
+  var pending = /* @__PURE__ */ new Map();
+  function progress(name, received, total, phase = "Downloading") {
+    if (!activeDialog) {
+      activeDialog = document.createElement("dialog");
+      const title = document.createElement("p");
+      const bar2 = document.createElement("progress");
+      const close = document.createElement("button");
+      close.textContent = "Hide";
+      close.onclick = () => activeDialog.close();
+      activeDialog.append(title, bar2, close);
+      document.body.append(activeDialog);
+      activeDialog.showModal();
+    }
+    activeDialog.querySelector("p").textContent = `${phase}: ${name}${total ? ` \xB7 ${Math.min(100, Math.floor(received / total * 100))}%` : "\u2026"}`;
+    const bar = activeDialog.querySelector("progress");
+    bar.max = total || 1;
+    if (total) bar.value = received;
+    else bar.removeAttribute("value");
+  }
+  function downloadProgress(name, received, total) {
+    progress(name || "File", received || 0, total || 0);
+  }
+  function finishDownload(error) {
+    activeDialog?.remove();
+    activeDialog = null;
+    if (error) showToast(error);
+  }
+  function nativeRequest(message) {
+    return new Promise((resolve, reject) => {
+      const request = crypto.randomUUID();
+      const timeout = setTimeout(() => {
+        pending.delete(request);
+        reject(new Error("Android did not finish saving the file"));
+      }, 3e4);
+      pending.set(request, (reply) => {
+        clearTimeout(timeout);
+        reply.error ? reject(new Error(reply.error)) : resolve(reply);
+      });
+      nativePort.postMessage(JSON.stringify({ ...message, request }));
+    });
+  }
+  function initDownloads() {
+    addEventListener("message", (event) => {
+      const token = document.documentElement.dataset.downloadToken;
+      if (!token || event.data !== token || !event.ports?.length) return;
+      nativePort?.close();
+      nativePort = event.ports[0];
+      delete document.documentElement.dataset.downloadToken;
+      nativePort.onmessage = ({ data }) => {
+        const reply = JSON.parse(data);
+        pending.get(reply.request)?.(reply);
+        pending.delete(reply.request);
+      };
+      nativePort.start();
+    });
+  }
+  async function saveBlob(blob, name = "download") {
+    const id = crypto.randomUUID();
+    try {
+      if (nativePort) {
+        progress(name, 0, blob.size, "Saving to Downloads/ciXnet");
+        await nativeRequest({
+          action: "begin",
+          id,
+          name,
+          mime: blob.type,
+          size: blob.size
+        });
+        for (let offset = 0; offset < blob.size; offset += 32768) {
+          const bytes = new Uint8Array(
+            await blob.slice(offset, offset + 32768).arrayBuffer()
+          );
+          await nativeRequest({
+            action: "chunk",
+            id,
+            data: btoa(String.fromCharCode(...bytes))
+          });
+          progress(
+            name,
+            offset + bytes.length,
+            blob.size,
+            "Saving to Downloads/ciXnet"
+          );
+        }
+        await nativeRequest({ action: "finish", id });
+        showToast("Saved to Downloads/ciXnet");
+      } else {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = name;
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 3e4);
+      }
+    } catch (error) {
+      if (nativePort)
+        await nativeRequest({ action: "cancel", id }).catch(() => {
+        });
+      showToast(error.message);
+      throw error;
+    } finally {
+      finishDownload();
+    }
+  }
+  function offerPhotoSave(image, load, name) {
+    image.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+      const dialog = document.createElement("dialog");
+      const save = document.createElement("button");
+      save.textContent = "Save photo";
+      const cancel = document.createElement("button");
+      cancel.textContent = "Cancel";
+      cancel.onclick = () => dialog.close();
+      save.onclick = async () => {
+        dialog.close();
+        try {
+          await saveBlob(await load(), name);
+        } catch {
+        }
+      };
+      dialog.onclose = () => dialog.remove();
+      dialog.append(save, cancel);
+      document.body.append(dialog);
+      dialog.showModal();
+    });
+  }
+
   // ui/icons.js
   var iconCatalog = {};
   var avatarPalette = {
@@ -12429,14 +12561,7 @@
         });
         if (!response.ok) throw Error("Identity export failed");
         const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "cixnet-" + editingIdentity.id + ".identity";
-        document.body.append(link);
-        link.click();
-        link.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 1e4);
+        await saveBlob(blob, "cixnet-" + editingIdentity.id + ".identity");
         showToast("Private identity file exported");
       } catch (error) {
         $("manage-error").textContent = error.message;
@@ -12755,14 +12880,12 @@
           image.alt = item.name;
           image.className = "message-image";
           image.src = url;
+          offerPhotoSave(image, async () => blob, item.name);
           row.append(image);
           button.remove();
         } else {
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = item.name;
-          link.click();
-          setTimeout(() => URL.revokeObjectURL(url), 3e4);
+          URL.revokeObjectURL(url);
+          await saveBlob(blob, item.name);
         }
       } catch (failure) {
         error.textContent = failure.message;
@@ -13281,6 +13404,13 @@
     { kind: "nomadpl", label: "NomadPL", icon: "web" }
   ];
   var storageKey = "cixnet-browse-kinds";
+  function bookmarkName(bookmark, announces) {
+    if (bookmark.name && bookmark.name !== bookmark.url) return bookmark.name;
+    const address = bookmark.url.match(
+      /^(?:nomadpl:\/\/|nomadnet:\/\/)?([0-9a-f]{32})(?=[:/]|$)/i
+    )?.[1];
+    return announces.find((item) => item.address === address?.toLowerCase())?.display_name || bookmark.name || bookmark.url;
+  }
   function loadBrowseKinds(storage) {
     try {
       const saved = JSON.parse(storage.getItem(storageKey));
@@ -13320,7 +13450,18 @@
   }
   var AUTO_IMAGE_BYTES = 64 * 1024;
   var imageQueue = Promise.resolve();
-  function loadMicronImage(page, target, image) {
+  function trimImageCaches(pages, limit = 16 * 1024 * 1024) {
+    let retained = 0;
+    for (const page of [...pages].reverse()) {
+      if (!page.images) continue;
+      for (const [target, blob] of page.images) {
+        if (retained + blob.size > limit) page.images.delete(target);
+        else retained += blob.size;
+      }
+    }
+  }
+  function loadMicronImage(page, target, image, trimCache = () => {
+  }) {
     if (target.startsWith(":/")) target = target.slice(1);
     const owner = model.active.id;
     const active = () => image.isConnected && model.active?.id === owner;
@@ -13367,6 +13508,7 @@
                 throw new Error("Page image limit reached");
               blob = new Blob([bytes], { type: mime });
               page.images.set(target, blob);
+              trimCache();
               break;
             }
             if (["error", "cancelled"].includes(result.phase))
@@ -13383,6 +13525,11 @@
           button.textContent = "Image could not be decoded";
         };
         image.src = url;
+        offerPhotoSave(
+          image,
+          async () => blob,
+          target.split("/").pop() || "photo"
+        );
         button.hidden = true;
       } catch (error) {
         if (active()) {
@@ -13780,6 +13927,8 @@
   var onMessage;
   var nodeSignature = "";
   var selectedBrowseKinds;
+  var discoveredPage = 0;
+  var discoveredQuery = "";
   function browseSelection() {
     if (!selectedBrowseKinds) {
       try {
@@ -13791,6 +13940,13 @@
     return selectedBrowseKinds;
   }
   var frameContext = null;
+  var mountedOwner = null;
+  function resetBrowser() {
+    leaveBrowser();
+    frameContext = null;
+    mountedOwner = null;
+    $("browse-detail").replaceChildren();
+  }
   function session() {
     const owner = model.active.id;
     if (!sessions.has(owner))
@@ -13856,8 +14012,15 @@
     currentJob = null;
   }
   function renderBrowse() {
+    if (mountedOwner === model.active.id) {
+      renderBrowseNodes();
+      updateButtons();
+      return;
+    }
+    resetBrowser();
+    mountedOwner = model.active.id;
     const state = session();
-    $("detail").innerHTML = `<section class="nomad-browser"><header class="browser-toolbar">
+    $("browse-detail").innerHTML = `<section class="nomad-browser"><header class="browser-toolbar">
     <div class="browser-topline"><button type="button" id="browser-nodes" title="Show sites" aria-label="Show sites">\u2630</button><button type="button" id="browser-back" title="Back" aria-label="Previous page">\u2190</button><button type="button" id="browser-forward" title="Forward" aria-label="Next page">\u2192</button><button type="button" id="browser-reload" title="Refresh" aria-label="Reload page">\u21BB</button>
     <form id="browser-address-form" class="address-bar"><input id="browser-address" aria-label="Network address" placeholder="Enter a name or address" autocomplete="off" required><button type="button" id="browser-identify" aria-label="Identify to site" aria-pressed="false" title="Identify to site as ${escapeHTML(model.active.nickname)}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="3.5"/><path d="M5 21v-3a7 7 0 0 1 14 0v3"/></svg></button><button type="button" id="browser-bookmark" aria-label="Bookmark page" title="Bookmark page">\u2606</button></form>
     <button type="button" id="browser-external" title="Open in external browser" aria-label="Open in external browser">\u2197</button><button type="button" id="browser-dns" title="Name servers">DNS</button><button type="button" id="browser-source" title="View source" aria-label="View source">&lt;/&gt;</button><button type="button" id="browser-stop" hidden aria-label="Stop loading">\xD7</button></div><p id="browser-status" role="status"></p></header>
@@ -13984,13 +14147,13 @@
     $("browser-back").disabled = state.index <= 0;
     $("browser-forward").disabled = state.index >= state.history.length - 1;
     $("browser-reload").disabled = state.index < 0;
-    $("browser-bookmark").disabled = state.index < 0 || unsynced;
+    $("browser-bookmark").disabled = state.index < 0;
     const marked = state.index >= 0 && state.bookmarks.some((item) => item.url === state.history[state.index].url);
     $("browser-bookmark").textContent = marked ? "\u2605" : "\u2606";
-    $("browser-bookmark").title = marked ? "Remove bookmark" : "Bookmark page";
+    $("browser-bookmark").title = marked ? "Remove bookmark" : unsynced ? "Bookmark address shown" : "Bookmark page";
     $("browser-bookmark").setAttribute(
       "aria-label",
-      marked ? "Remove bookmark" : "Bookmark page"
+      marked ? "Remove bookmark" : unsynced ? "Bookmark address shown" : "Bookmark page"
     );
   }
   function renderBrowseNodes() {
@@ -13998,6 +14161,15 @@
     const state = session();
     const query = $("search").value.toLowerCase();
     const selectedKinds = browseSelection();
+    const pageQuery = JSON.stringify([
+      query,
+      [...selectedKinds],
+      model.active.id
+    ]);
+    if (pageQuery !== discoveredQuery) {
+      discoveredQuery = pageQuery;
+      discoveredPage = 0;
+    }
     const nodes = discoveredNodes(model.network.announces, selectedKinds);
     const signature = JSON.stringify([
       state.bookmarks,
@@ -14012,7 +14184,8 @@
         }) => ({ address, display_name, kind })
       ),
       query,
-      model.active.id
+      model.active.id,
+      discoveredPage
     ]);
     if (signature === nodeSignature && $("list-content").querySelector(".browser-list-heading"))
       return;
@@ -14020,7 +14193,13 @@
     $("list-content").dataset.browserNodes = "true";
     $("list-content").replaceChildren();
     for (const [title, entries] of [
-      ["Bookmarks", state.bookmarks],
+      [
+        "Bookmarks",
+        state.bookmarks.map((item) => ({
+          ...item,
+          name: bookmarkName(item, model.network.announces)
+        }))
+      ],
       [
         "Discovered nodes",
         nodes.map((item) => ({
@@ -14065,9 +14244,39 @@
         heading.append(filters);
       }
       let count = 0;
-      for (const entry of entries.filter(
+      let matching = entries.filter(
         (item) => `${item.name} ${item.url}`.toLowerCase().includes(query)
-      )) {
+      );
+      if (title === "Discovered nodes") {
+        const pages = Math.max(1, Math.ceil(matching.length / 100));
+        discoveredPage = Math.min(discoveredPage, pages - 1);
+        const navigation = document.createElement("div");
+        navigation.className = "announce-page";
+        navigation.setAttribute("aria-label", "Discovered node pages");
+        const count2 = document.createElement("span");
+        count2.textContent = `${discoveredPage + 1} / ${pages} \xB7 ${matching.length}`;
+        for (const [label, direction] of [
+          ["Previous", -1],
+          ["Next", 1]
+        ]) {
+          const button = document.createElement("button");
+          button.textContent = label;
+          button.disabled = direction < 0 ? discoveredPage === 0 : discoveredPage === pages - 1;
+          button.onclick = () => {
+            discoveredPage += direction;
+            renderBrowseNodes();
+            $("list-content").scrollTop = 0;
+          };
+          navigation.append(button);
+        }
+        navigation.insertBefore(count2, navigation.lastChild);
+        $("list-content").append(navigation);
+        matching = matching.slice(
+          discoveredPage * 100,
+          (discoveredPage + 1) * 100
+        );
+      }
+      for (const entry of matching) {
         const button = document.createElement("button");
         button.className = "browser-site";
         button.title = entry.url;
@@ -14161,7 +14370,10 @@
         $("browser-document"),
         page.source,
         (target, fields) => navigateLink(target, fields),
-        (target, image) => loadMicronImage(page, target, image)
+        (target, image) => loadMicronImage(page, target, image, () => {
+          const older = [...sessions.values()].flatMap((state) => state.history).filter((item) => item !== page);
+          trimImageCaches([...older, page]);
+        })
       );
     } catch (error) {
       $("browser-document").textContent = error.message;
@@ -14250,7 +14462,7 @@
       if (ticket === generation) pendingNavigation = null;
     };
     finishLoading = finish;
-    const active = () => ticket === generation && model.active?.id === owner && model.tab === "browse";
+    const active = () => ticket === generation && model.active?.id === owner;
     try {
       const choice = await api("browser/identify", { owner, url, base });
       if (!active()) return;
@@ -14285,12 +14497,9 @@
                 throw new Error("Could not retrieve the downloaded file");
               if (!active()) return;
               const blob = await response.blob();
-              const url2 = URL.createObjectURL(blob);
-              const link = document.createElement("a");
-              link.href = url2;
-              link.download = result.download.name;
-              link.click();
-              setTimeout(() => URL.revokeObjectURL(url2), 3e4);
+              api("browser/cancel", { owner, id: job.id }).catch(() => {
+              });
+              await saveBlob(blob, result.download.name);
               currentJob = null;
               $("browser-stop").hidden = true;
               finish();
@@ -14306,6 +14515,8 @@
               identify,
               identityURL: choice.url
             };
+            api("browser/cancel", { owner, id: job.id }).catch(() => {
+            });
             if (replace && state.index >= 0) state.history[state.index] = page;
             else {
               state.history.splice(state.index + 1);
@@ -14348,7 +14559,11 @@
     if (!page) return;
     const owner = model.active.id;
     const existing = state.bookmarks.find((item) => item.url === page.url);
-    const name = existing?.name || page.title?.slice(0, 100) || $("browser-document").querySelector("h1,h2,h3,summary")?.textContent.slice(0, 100) || page.url.slice(0, 100);
+    const button = $("browser-bookmark");
+    if (button.disabled) return;
+    button.disabled = true;
+    const suggested = bookmarkName({ url: page.url }, model.network.announces);
+    const name = existing?.name || page.title?.slice(0, 100) || (suggested !== page.url ? suggested.slice(0, 100) : "") || $("browser-document").querySelector("h1,h2,h3,summary")?.textContent.slice(0, 100) || page.url.slice(0, 100);
     try {
       const result = await api("browser/bookmark", {
         owner,
@@ -14357,12 +14572,15 @@
         remove: Boolean(existing)
       });
       state.bookmarks = result.bookmarks;
+      showToast(existing ? "Removed from favourites" : "Saved to favourites");
       if (model.active?.id === owner && model.tab === "browse") {
         renderBrowseNodes();
         updateButtons();
       }
     } catch (error) {
       showToast(error.message);
+    } finally {
+      if (model.active?.id === owner && model.tab === "browse") updateButtons();
     }
   }
   async function renderDNS(address = null) {
@@ -14441,13 +14659,33 @@
   }
   function receiveFrameNavigation(event) {
     const context = frameContext;
-    if (!context || !context.frame.isConnected || event.source !== context.frame.contentWindow || event.origin !== context.origin || model.active?.id !== context.owner || model.tab !== "browse")
+    if (!context || !context.frame.isConnected || event.source !== context.frame.contentWindow || event.origin !== context.origin || model.active?.id !== context.owner)
       return;
     const data = event.data;
     if (!data || typeof data !== "object" || typeof data.channel !== "string" || !/^\/\.cixnet-navigation-[a-f0-9]{32}\.js$/.test(data.channel))
       return;
     if (context.channel && context.channel !== data.channel) return;
     context.channel = data.channel;
+    if (data.type === "cixnet-download-progress") {
+      downloadProgress(
+        String(data.name || "File").slice(0, 180),
+        Number(data.received),
+        Number(data.total)
+      );
+      return;
+    }
+    if (data.type === "cixnet-download-ready") {
+      if (data.blob instanceof Blob && data.blob.size <= 64 * 1024 * 1024)
+        saveBlob(data.blob, String(data.name || "download").slice(0, 180)).catch(
+          () => {
+          }
+        );
+      return;
+    }
+    if (data.type === "cixnet-download-error") {
+      finishDownload(String(data.error || "Download failed").slice(0, 250));
+      return;
+    }
     if (data.type === "cixnet-loading") {
       if (!context.loading) {
         context.finishActivity();
@@ -14574,6 +14812,9 @@
   // ui/network-ui.js
   var selectedAnnounce = null;
   var actions;
+  var announcePage = 0;
+  var announceQuery = "";
+  var ANNOUNCES_PER_PAGE = 100;
   function initAnnounces(callbacks) {
     actions = callbacks;
   }
@@ -14605,15 +14846,58 @@
   }
   function renderAnnounces() {
     const query = $("search").value.trim().toLowerCase();
+    if (query !== announceQuery) {
+      announceQuery = query;
+      announcePage = 0;
+    }
     const entries = model.network.announces.filter(
       (entry) => `${entry.address} ${entry.display_name || ""} ${entry.kind} ${entry.data}`.toLowerCase().includes(query)
     );
-    $("list-content").replaceChildren();
+    const pages = Math.max(1, Math.ceil(entries.length / ANNOUNCES_PER_PAGE));
+    announcePage = Math.min(announcePage, pages - 1);
+    const visible = entries.slice(
+      announcePage * ANNOUNCES_PER_PAGE,
+      (announcePage + 1) * ANNOUNCES_PER_PAGE
+    );
+    const list = $("list-content");
+    const signature = JSON.stringify([
+      query,
+      announcePage,
+      entries.length,
+      selectedAnnounce,
+      model.network.phase,
+      visible
+    ]);
+    if (list.dataset.announcePage === signature && list.querySelector(".announce-page"))
+      return;
+    list.dataset.announcePage = signature;
+    list.replaceChildren();
+    const navigation = document.createElement("div");
+    navigation.className = "announce-page";
+    navigation.setAttribute("aria-label", "Announce pages");
+    for (const [label, direction] of [
+      ["Previous", -1],
+      ["Next", 1]
+    ]) {
+      const button = document.createElement("button");
+      button.textContent = label;
+      button.disabled = direction < 0 ? announcePage === 0 : announcePage === pages - 1;
+      button.onclick = () => {
+        announcePage += direction;
+        renderAnnounces();
+        list.scrollTop = 0;
+      };
+      navigation.append(button);
+    }
+    const count = document.createElement("span");
+    count.textContent = `${announcePage + 1} / ${pages} \xB7 ${entries.length}`;
+    navigation.insertBefore(count, navigation.lastChild);
+    list.append(navigation);
     if (!entries.length) {
       $("list-content").innerHTML = `<div class="list-empty"><strong>${query ? "No matches" : "No announces received"}</strong>
       ${model.network.phase === "running" ? "Listening for live Reticulum announces." : "The network is not running."}</div>`;
     }
-    for (const entry of entries) {
+    for (const entry of visible) {
       const button = document.createElement("button");
       button.className = "announce-item compact-announce";
       const kind = {
@@ -15115,8 +15399,9 @@
   // ui/app.js
   var lastPollError = "";
   function showTab(tab) {
-    leaveBrowser();
     model.tab = tab;
+    $("detail").classList.toggle("hidden", tab === "browse");
+    $("browse-detail").classList.toggle("hidden", tab !== "browse");
     model.conversation = null;
     $("search").value = "";
     document.querySelectorAll("[data-tab]").forEach(
@@ -15210,6 +15495,7 @@
     }
   }
   async function start() {
+    initDownloads();
     initAbout();
     initProtection();
     window.addEventListener("hashchange", async () => {
@@ -15279,7 +15565,7 @@
         }
       }
       document.querySelectorAll("dialog[open]").forEach((dialog) => dialog.close());
-      leaveBrowser();
+      resetBrowser();
       clearMessageDraft();
       model.active = null;
       model.conversation = null;

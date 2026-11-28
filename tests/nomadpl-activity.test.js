@@ -39,7 +39,7 @@ test("NomadPL reports form navigation, suppresses repeat submission and tracks d
     `lxmf@${messagingAddress}`,
   ]) {
     let blocked = false;
-    const link = { href, getAttribute: () => href };
+    const link = { href, getAttribute: () => href, hasAttribute: () => false };
     const event = {
       button: 0,
       target: { closest: () => link },

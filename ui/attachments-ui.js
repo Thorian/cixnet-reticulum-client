@@ -1,5 +1,6 @@
 /** Attachment selection and authenticated downloads. Remote files never execute. */
 import { apiResponse } from "./core.js";
+import { saveBlob, offerPhotoSave } from "./downloads.js";
 
 export const MAX_ATTACHMENT_BYTES = 8 * 1024 * 1024;
 
@@ -114,14 +115,12 @@ export function attachmentView(owner, message, item) {
         image.alt = item.name;
         image.className = "message-image";
         image.src = url;
+        offerPhotoSave(image, async () => blob, item.name);
         row.append(image);
         button.remove();
       } else {
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = item.name;
-        link.click();
-        setTimeout(() => URL.revokeObjectURL(url), 30000);
+        URL.revokeObjectURL(url);
+        await saveBlob(blob, item.name);
       }
     } catch (failure) {
       error.textContent = failure.message;

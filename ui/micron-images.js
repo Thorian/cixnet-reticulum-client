@@ -1,4 +1,5 @@
 import { api, apiResponse, model } from "./core.js";
+import { offerPhotoSave } from "./downloads.js";
 
 /** Raster signatures prevent remote HTML or SVG from becoming app content. */
 export function imageMime(bytes) {
@@ -16,8 +17,20 @@ export const AUTO_IMAGE_BYTES = 64 * 1024;
 // Serialize image jobs because the native browser permits one request per identity.
 let imageQueue = Promise.resolve();
 
+/** Keep recent image bytes within a shared budget across browser histories. */
+export function trimImageCaches(pages, limit = 16 * 1024 * 1024) {
+  let retained = 0;
+  for (const page of [...pages].reverse()) {
+    if (!page.images) continue;
+    for (const [target, blob] of page.images) {
+      if (retained + blob.size > limit) page.images.delete(target);
+      else retained += blob.size;
+    }
+  }
+}
+
 /** Native file transfers are explicit on slow links and cached with page history. */
-export function loadMicronImage(page, target, image) {
+export function loadMicronImage(page, target, image, trimCache = () => {}) {
   // NomadNet uses :/path for an asset on the current node.
   if (target.startsWith(":/")) target = target.slice(1);
   const owner = model.active.id;
@@ -65,6 +78,7 @@ export function loadMicronImage(page, target, image) {
               throw new Error("Page image limit reached");
             blob = new Blob([bytes], { type: mime });
             page.images.set(target, blob);
+            trimCache();
             break;
           }
           if (["error", "cancelled"].includes(result.phase))
@@ -81,6 +95,11 @@ export function loadMicronImage(page, target, image) {
         button.textContent = "Image could not be decoded";
       };
       image.src = url;
+      offerPhotoSave(
+        image,
+        async () => blob,
+        target.split("/").pop() || "photo",
+      );
       button.hidden = true;
     } catch (error) {
       if (active()) {

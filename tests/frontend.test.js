@@ -571,7 +571,18 @@ test("announced contacts and DNS authorities expose the matching direct action",
   const classes = { add() {}, toggle() {}, remove() {} };
   const element = () => ({
     children: [],
+    dataset: {},
     classList: classes,
+    setAttribute() {},
+    querySelector() {
+      return null;
+    },
+    get lastChild() {
+      return this.children.at(-1);
+    },
+    insertBefore(child, sibling) {
+      this.children.splice(this.children.indexOf(sibling), 0, child);
+    },
     value: "",
     append(child) {
       this.children.push(child);
@@ -621,7 +632,7 @@ test("announced contacts and DNS authorities expose the matching direct action",
         ],
       };
       renderAnnounces();
-      list.children[0].onclick();
+      list.children[1].onclick();
       assert.equal(panel.children[0].textContent, label);
       panel.children[0].onclick();
     }

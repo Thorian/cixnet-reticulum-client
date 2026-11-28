@@ -16,6 +16,44 @@ from web_services import WebServices
 
 
 class ExternalBrowserTests(unittest.TestCase):
+    def test_binary_download_exceeding_old_16mb_limit_completes(self):
+        from urllib.parse import urlsplit
+
+        body = b"x" * (17 * 1024 * 1024)
+        with (
+            tempfile.TemporaryDirectory() as directory,
+            patch("web_services.Discovery.start"),
+            patch("web_services.Client") as factory,
+        ):
+            factory.return_value.request.return_value = Response(
+                200,
+                [
+                    ("Content-Type", "application/octet-stream"),
+                    ("Content-Disposition", 'attachment; filename="large.bin"'),
+                ],
+                body,
+            )
+            profiles = ProfileStore(directory)
+            owner = profiles.create("Download test")["id"]
+            web = WebServices(profiles)
+            url = web.gateway(owner, "nomadpl://" + "a" * 32 + "/large.bin")
+            parts = urlsplit(url)
+            connection = http.client.HTTPConnection("127.0.0.1", parts.port, timeout=10)
+            try:
+                connection.request("GET", "/large.bin", headers={"Host": parts.netloc})
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                self.assertEqual(response.read(), body)
+                self.assertEqual(
+                    factory.call_args.kwargs["limits"].response_body, 64 * 1024 * 1024
+                )
+            finally:
+                connection.close()
+                for gateway, _ in web.gateways.values():
+                    gateway.shutdown()
+                    gateway.server_close()
+                web.db.close()
+
     def test_named_gateway_boundaries_and_saved_port(self):
         with (
             tempfile.TemporaryDirectory() as directory,

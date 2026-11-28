@@ -4,10 +4,12 @@ import {
   loadBrowseKinds,
   saveBrowseKinds,
   discoveredNodes,
+  bookmarkName,
 } from "./browse-filters.js";
 import { serviceIcon } from "./icons.js";
 import { beginActivity } from "./activity.js";
-import { loadMicronImage } from "./micron-images.js";
+import { saveBlob, downloadProgress, finishDownload } from "./downloads.js";
+import { loadMicronImage, trimImageCaches } from "./micron-images.js";
 /** Native NomadNet navigation. Requests are asynchronous jobs in the service. */
 import { $, model, api, apiResponse, escapeHTML, showToast } from "./core.js";
 import { renderMicron, collectMicronFields } from "./micron.js";
@@ -21,6 +23,8 @@ let pendingNavigation = null;
 let onMessage;
 let nodeSignature = "";
 let selectedBrowseKinds;
+let discoveredPage = 0;
+let discoveredQuery = "";
 function browseSelection() {
   if (!selectedBrowseKinds) {
     try {
@@ -32,6 +36,15 @@ function browseSelection() {
   return selectedBrowseKinds;
 }
 let frameContext = null;
+let mountedOwner = null;
+
+/** Locking or changing identity must discard its live browser document. */
+export function resetBrowser() {
+  leaveBrowser();
+  frameContext = null;
+  mountedOwner = null;
+  $("browse-detail").replaceChildren();
+}
 
 /** Return the active identity's independent browser history and bookmark state. */
 function session() {
@@ -115,8 +128,15 @@ export function leaveBrowser() {
 
 /** Build the selected identity's browser controls and restore its current page. */
 export function renderBrowse() {
+  if (mountedOwner === model.active.id) {
+    renderBrowseNodes();
+    updateButtons();
+    return;
+  }
+  resetBrowser();
+  mountedOwner = model.active.id;
   const state = session();
-  $("detail").innerHTML =
+  $("browse-detail").innerHTML =
     `<section class="nomad-browser"><header class="browser-toolbar">
     <div class="browser-topline"><button type="button" id="browser-nodes" title="Show sites" aria-label="Show sites">☰</button><button type="button" id="browser-back" title="Back" aria-label="Previous page">←</button><button type="button" id="browser-forward" title="Forward" aria-label="Next page">→</button><button type="button" id="browser-reload" title="Refresh" aria-label="Reload page">↻</button>
     <form id="browser-address-form" class="address-bar"><input id="browser-address" aria-label="Network address" placeholder="Enter a name or address" autocomplete="off" required><button type="button" id="browser-identify" aria-label="Identify to site" aria-pressed="false" title="Identify to site as ${escapeHTML(model.active.nickname)}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="3.5"/><path d="M5 21v-3a7 7 0 0 1 14 0v3"/></svg></button><button type="button" id="browser-bookmark" aria-label="Bookmark page" title="Bookmark page">☆</button></form>
@@ -269,15 +289,23 @@ function updateButtons() {
   $("browser-back").disabled = state.index <= 0;
   $("browser-forward").disabled = state.index >= state.history.length - 1;
   $("browser-reload").disabled = state.index < 0;
-  $("browser-bookmark").disabled = state.index < 0 || unsynced;
+  $("browser-bookmark").disabled = state.index < 0;
   const marked =
     state.index >= 0 &&
     state.bookmarks.some((item) => item.url === state.history[state.index].url);
   $("browser-bookmark").textContent = marked ? "★" : "☆";
-  $("browser-bookmark").title = marked ? "Remove bookmark" : "Bookmark page";
+  $("browser-bookmark").title = marked
+    ? "Remove bookmark"
+    : unsynced
+      ? "Bookmark address shown"
+      : "Bookmark page";
   $("browser-bookmark").setAttribute(
     "aria-label",
-    marked ? "Remove bookmark" : "Bookmark page",
+    marked
+      ? "Remove bookmark"
+      : unsynced
+        ? "Bookmark address shown"
+        : "Bookmark page",
   );
 }
 
@@ -287,6 +315,15 @@ export function renderBrowseNodes() {
   const state = session();
   const query = $("search").value.toLowerCase();
   const selectedKinds = browseSelection();
+  const pageQuery = JSON.stringify([
+    query,
+    [...selectedKinds],
+    model.active.id,
+  ]);
+  if (pageQuery !== discoveredQuery) {
+    discoveredQuery = pageQuery;
+    discoveredPage = 0;
+  }
   const nodes = discoveredNodes(model.network.announces, selectedKinds);
   const signature = JSON.stringify([
     state.bookmarks,
@@ -301,6 +338,7 @@ export function renderBrowseNodes() {
     ),
     query,
     model.active.id,
+    discoveredPage,
   ]);
   if (
     signature === nodeSignature &&
@@ -311,7 +349,13 @@ export function renderBrowseNodes() {
   $("list-content").dataset.browserNodes = "true";
   $("list-content").replaceChildren();
   for (const [title, entries] of [
-    ["Bookmarks", state.bookmarks],
+    [
+      "Bookmarks",
+      state.bookmarks.map((item) => ({
+        ...item,
+        name: bookmarkName(item, model.network.announces),
+      })),
+    ],
     [
       "Discovered nodes",
       nodes.map((item) => ({
@@ -364,9 +408,40 @@ export function renderBrowseNodes() {
       heading.append(filters);
     }
     let count = 0;
-    for (const entry of entries.filter((item) =>
+    let matching = entries.filter((item) =>
       `${item.name} ${item.url}`.toLowerCase().includes(query),
-    )) {
+    );
+    if (title === "Discovered nodes") {
+      const pages = Math.max(1, Math.ceil(matching.length / 100));
+      discoveredPage = Math.min(discoveredPage, pages - 1);
+      const navigation = document.createElement("div");
+      navigation.className = "announce-page";
+      navigation.setAttribute("aria-label", "Discovered node pages");
+      const count = document.createElement("span");
+      count.textContent = `${discoveredPage + 1} / ${pages} · ${matching.length}`;
+      for (const [label, direction] of [
+        ["Previous", -1],
+        ["Next", 1],
+      ]) {
+        const button = document.createElement("button");
+        button.textContent = label;
+        button.disabled =
+          direction < 0 ? discoveredPage === 0 : discoveredPage === pages - 1;
+        button.onclick = () => {
+          discoveredPage += direction;
+          renderBrowseNodes();
+          $("list-content").scrollTop = 0;
+        };
+        navigation.append(button);
+      }
+      navigation.insertBefore(count, navigation.lastChild);
+      $("list-content").append(navigation);
+      matching = matching.slice(
+        discoveredPage * 100,
+        (discoveredPage + 1) * 100,
+      );
+    }
+    for (const entry of matching) {
       const button = document.createElement("button");
       button.className = "browser-site";
       button.title = entry.url;
@@ -488,7 +563,13 @@ function paint(page) {
       $("browser-document"),
       page.source,
       (target, fields) => navigateLink(target, fields),
-      (target, image) => loadMicronImage(page, target, image),
+      (target, image) =>
+        loadMicronImage(page, target, image, () => {
+          const older = [...sessions.values()]
+            .flatMap((state) => state.history)
+            .filter((item) => item !== page);
+          trimImageCaches([...older, page]);
+        }),
     );
   } catch (error) {
     $("browser-document").textContent = error.message;
@@ -600,10 +681,7 @@ export async function openBrowserURL(
   };
   finishLoading = finish;
   /** Check that this request still belongs to the visible identity and navigation. */
-  const active = () =>
-    ticket === generation &&
-    model.active?.id === owner &&
-    model.tab === "browse";
+  const active = () => ticket === generation && model.active?.id === owner;
   try {
     const choice = await api("browser/identify", { owner, url, base });
     if (!active()) return;
@@ -640,12 +718,8 @@ export async function openBrowserURL(
               throw new Error("Could not retrieve the downloaded file");
             if (!active()) return;
             const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = result.download.name;
-            link.click();
-            setTimeout(() => URL.revokeObjectURL(url), 30000);
+            api("browser/cancel", { owner, id: job.id }).catch(() => {});
+            await saveBlob(blob, result.download.name);
             currentJob = null;
             $("browser-stop").hidden = true;
             finish();
@@ -662,6 +736,8 @@ export async function openBrowserURL(
             identify,
             identityURL: choice.url,
           };
+          // History now owns the page; the receiver can release its transfer copy.
+          api("browser/cancel", { owner, id: job.id }).catch(() => {});
           if (replace && state.index >= 0) state.history[state.index] = page;
           else {
             state.history.splice(state.index + 1);
@@ -707,9 +783,14 @@ async function bookmarkCurrent() {
   if (!page) return;
   const owner = model.active.id;
   const existing = state.bookmarks.find((item) => item.url === page.url);
+  const button = $("browser-bookmark");
+  if (button.disabled) return;
+  button.disabled = true;
+  const suggested = bookmarkName({ url: page.url }, model.network.announces);
   const name =
     existing?.name ||
     page.title?.slice(0, 100) ||
+    (suggested !== page.url ? suggested.slice(0, 100) : "") ||
     $("browser-document")
       .querySelector("h1,h2,h3,summary")
       ?.textContent.slice(0, 100) ||
@@ -722,12 +803,15 @@ async function bookmarkCurrent() {
       remove: Boolean(existing),
     });
     state.bookmarks = result.bookmarks;
+    showToast(existing ? "Removed from favourites" : "Saved to favourites");
     if (model.active?.id === owner && model.tab === "browse") {
       renderBrowseNodes();
       updateButtons();
     }
   } catch (error) {
     showToast(error.message);
+  } finally {
+    if (model.active?.id === owner && model.tab === "browse") updateButtons();
   }
 }
 
@@ -822,8 +906,7 @@ function receiveFrameNavigation(event) {
     !context.frame.isConnected ||
     event.source !== context.frame.contentWindow ||
     event.origin !== context.origin ||
-    model.active?.id !== context.owner ||
-    model.tab !== "browse"
+    model.active?.id !== context.owner
   )
     return;
   const data = event.data;
@@ -836,6 +919,25 @@ function receiveFrameNavigation(event) {
     return;
   if (context.channel && context.channel !== data.channel) return;
   context.channel = data.channel;
+  if (data.type === "cixnet-download-progress") {
+    downloadProgress(
+      String(data.name || "File").slice(0, 180),
+      Number(data.received),
+      Number(data.total),
+    );
+    return;
+  }
+  if (data.type === "cixnet-download-ready") {
+    if (data.blob instanceof Blob && data.blob.size <= 64 * 1024 * 1024)
+      saveBlob(data.blob, String(data.name || "download").slice(0, 180)).catch(
+        () => {},
+      );
+    return;
+  }
+  if (data.type === "cixnet-download-error") {
+    finishDownload(String(data.error || "Download failed").slice(0, 250));
+    return;
+  }
   if (data.type === "cixnet-loading") {
     if (!context.loading) {
       context.finishActivity();

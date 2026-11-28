@@ -5,6 +5,20 @@ export const browseKinds = [
   { kind: "nomadpl", label: "NomadPL", icon: "web" },
 ];
 const storageKey = "cixnet-browse-kinds";
+
+/** Prefer an announced name when a bookmark only has its address as a label. */
+export function bookmarkName(bookmark, announces) {
+  if (bookmark.name && bookmark.name !== bookmark.url) return bookmark.name;
+  const address = bookmark.url.match(
+    /^(?:nomadpl:\/\/|nomadnet:\/\/)?([0-9a-f]{32})(?=[:/]|$)/i,
+  )?.[1];
+  return (
+    announces.find((item) => item.address === address?.toLowerCase())
+      ?.display_name ||
+    bookmark.name ||
+    bookmark.url
+  );
+}
 export function loadBrowseKinds(storage) {
   try {
     const saved = JSON.parse(storage.getItem(storageKey));

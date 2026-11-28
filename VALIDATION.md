@@ -1,5 +1,13 @@
 # Validation — 25 November 2026
 
+## 0.1.4 release checks
+
+- All 94 Python tests and 44 frontend tests passed; UI formatting and Python lint checks passed.
+- Windows: portable build completed and passed fresh-profile startup.
+- Android: version code 18, with the existing application ID and signing key.
+- The download implementation passed Android 13 emulator checks for public Downloads/ciXnet storage, exact file contents, completed-file publication and native HTTP downloads. These checks ran on version code 17 before the release version bump.
+- A 17 MB response passed through the NomadPL download bridge. Frontend tests cover download progress, chunk acknowledgements and failed-write cancellation.
+
 ## 0.1.3 release checks
 
 - Discovery retains 10,000 destinations, updates existing entries, and evicts the least recently heard entry at capacity.
